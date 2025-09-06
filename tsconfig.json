@@ -1,0 +1,38 @@
+{
+    "compilerOptions": {
+        "target": "ESNext", // modern JS output
+        "module": "ESNext", // ESM modules for Vite
+        "moduleResolution": "Node", // resolve modules like Node
+        "strict": true, // strict type checking
+        "esModuleInterop": true, // allow default import of CJS modules
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "allowJs": true, // allow JS files if needed
+        "resolveJsonModule": true, // import .json files
+        "lib": [
+            "ESNext",
+            "DOM"
+        ], // modern JS + browser types
+        "types": [
+            "node"
+        ], // Node types for fs, path
+        "baseUrl": ".", // resolve paths from project root
+        "paths": {
+            "~/*": [
+                "src/*"
+            ]
+        },
+        "noEmit": true // Vite handles compilation
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts",
+        "src/**/*.vue",
+        "src/**/*.md",
+        "src/global.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

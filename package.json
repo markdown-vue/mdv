@@ -1,0 +1,40 @@
+{
+    "name": "mdv",
+    "version": "1.0.0",
+    "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files. Each `.md` file can contain:",
+    "main": "index.js",
+    "scripts": {
+        "dev": "vite --host",
+        "build": "vite build",
+        "preview": "vite preview",
+        "type-check": "tsc --noEmit",
+        "lint": "eslint . --ext .ts,.js,.vue",
+        "format": "prettier --write ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/markdown-vue/mdv.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/markdown-vue/mdv/issues"
+    },
+    "homepage": "https://github.com/markdown-vue/mdv#readme",
+    "dependencies": {
+        "gray-matter": "^4.0.3",
+        "markdown-it": "^14.1.0",
+        "unist-builder": "^4.0.0",
+        "unist-util-visit": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/markdown-it": "^14.1.2",
+        "@types/node": "^24.3.1",
+        "@vitejs/plugin-vue": "^6.0.1",
+        "typescript": "^5.9.2",
+        "vite": "^7.1.4",
+        "vue": "^3.5.21"
+    }
+}
