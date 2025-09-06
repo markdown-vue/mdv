@@ -46,7 +46,7 @@ export function markdownToAST(mdContent: string): MDVNode {
                 }
 
                 // placeholder
-                if(tokens[i + 1].type === 'tr_open' && tokens[i + 2].type === 'td_open' && tokens[i + 3].type === 'inline') {
+                if(t.type === 'tbody_open' && tokens[i + 1].type === 'tr_open' && tokens[i + 2].type === 'td_open' && tokens[i + 3].type === 'inline') {
                     const textToken = tokens[i + 3]
                     placeholder = textToken.content;
                 }
@@ -62,6 +62,7 @@ export function markdownToAST(mdContent: string): MDVNode {
             }
 
             if(propsLine) {
+                // if is dynamic table
                 astChildren.push(
                     u('table', {
                         headers,
@@ -73,6 +74,7 @@ export function markdownToAST(mdContent: string): MDVNode {
                 continue
             }
             else {
+                // back to static table
                 i = oldI
             }
         }
