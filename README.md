@@ -171,11 +171,11 @@ h1 { font-weight: 700 }
 
 ---
 
-### Metadata (frontmatter)
+### Metadata (YAML frontmatter)
 
-YAML frontmatter is compiled into a `.meta.json` file.
+MDV supports YAML frontmatter, compiled into a `.meta.json` file alongside the component.
 
-Example:
+Example frontmatter:
 
 ```md
 ---
@@ -186,9 +186,9 @@ description: This is my first MDV page
 # Hello World
 ```
 
-Files emitted:
+Emitted files:
 
-* `HelloWorld.vue` (compiled)
+* `HelloWorld.vue` (compiled component)
 * `HelloWorld.meta.json` (metadata)
 
 Accessing metadata:
