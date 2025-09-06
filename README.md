@@ -183,7 +183,7 @@ title: Hello World
 description: This is my first MDV page
 ---
 
-# Hello World
+# {{ $meta.title }}
 ```
 
 Emitted files:
