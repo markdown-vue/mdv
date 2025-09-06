@@ -1,164 +1,124 @@
-# Markdown Vue (MDV) Documentation
+# Markdown-Vue (MDV) Documentation
 
-## 1. Introduction
+## Overview
 
-MDV is a reactive markdown format built on top of Vue. It allows developers to write markdown documents with **Vue components, loops, conditionals, and scoped scripts/styles**. It is designed to work in any Vue environment, making it suitable for **repo-based CMSs, static sites, and full Vue apps**.
+Markdown-Vue (MDV) lets you write Vue components directly in Markdown files. Each `.md` file can contain:
+
+* Regular Markdown content
+* Vue templates and components
+* Optional YAML frontmatter for metadata
+* Inline `<script>` and `<style>` blocks
+
+This allows you to build full Vue apps, static websites, or even lightweight repo-based CMSs without leaving Markdown.
 
 ---
 
-## 2. Inline Component Syntax
+## Syntax
 
-Inline components allow embedding Vue components inside markdown content. The syntax is:
+### Template
 
-```md
-[Text]{ ::component ...directives ...props }
-```
-
-* `::component`: the component name.
-* `...directives`: Vue directives such as `v-for`, `v-if`, `v-else`.
-* `...props`: props passed to the component.
-
-**Example:**
+* Markdown is the base template.
+* Vue components can be used inline with standard Vue syntax:
 
 ```md
-[User Badge]{ ::user-badge v-for="user in users" v-if="user.active" @click="selectUser(user)" }
-```
+# Hello {{ user.name }}
 
-### Mustache Syntax
-
-* You can use `{{ }}` anywhere in templates for dynamic content binding.
-
-### Inline Binding Syntax
-
-* Bind slot content to component props using `:[propName]`.
-
-```md
 :[user.name]{ ::user-badge }
 ```
 
-### `$meta` Variable
-
-* Inside MDV templates, `$meta` is automatically available and contains the current component's meta object.
+* `{{ }}` → Mustache syntax (works anywhere in the template).
+* `:[prop]{ ::component }` → Inline binding syntax, where the default slot is bound to a prop.
 
 ---
 
-## 3. Tables with Dynamic Rows
-
-MDV supports markdown-style tables with dynamic row rendering:
+### Loops
 
 ```md
-| id | name | action |
-|----|------|--------|
-{ rows }
-```
-
-* `rows` is an array of objects `{ value: any, component?: string, ...props }`.
-* Each object can specify a component and bind props.
-* Supports loops and conditionals through inline component syntax.
-* Fallback row (optional) should be placed **before** `{ rows }`:
-
-```md
-| No users found |
-{ rows }
+::ul
+  ::li(v-for="user in users")
+    :[user.name]{ ::user-badge }
 ```
 
 ---
 
-## 4. Scripts and Styles
-
-MDV uses **HTML-like tags** for scripts and styles, similar to Vue SFCs:
+### Dynamic Tables
 
 ```md
-::script{ setup }
-import UsersTable from '~/components/UsersTable'
-const users = await fetch('/api/users')
-::
-
-::style
-users-table { color: black; }
-::
+::table
+  ::tr(v-for="user in users")
+    ::td{ {{ user.name }} }
+    ::td{ {{ user.email }} }
+  ::tr
+    ::td(colspan="2"){ This is the fallback row }
 ```
-
-* Scripts can use `setup` or standard script behavior.
-* Styles are scoped and safe.
-* Scripts and styles are isolated per component.
 
 ---
 
-## 5. YAML Frontmatter (Optional)
+### Scripts and Styles
 
-* YAML frontmatter is optional and can define metadata.
-* MDV generates a **separate JSON file** for meta, e.g., `MyPage.meta.json`.
+You can write `<script>` and `<style>` blocks directly inside Markdown files.
+
+#### Script Example
+
+```md
+<script setup>
+import UserBadge from './UserBadge.vue'
+
+const users = [
+  { name: 'Alice', email: 'alice@example.com' },
+  { name: 'Bob', email: 'bob@example.com' }
+]
+</script>
+```
+
+* `<script setup>` is supported.
+* You can also use classic `<script>` if needed.
+* `lang="ts"` is supported.
+
+#### Style Example
+
+```md
+<style scoped>
+h1 {
+  color: red;
+}
+</style>
+```
+
+* `scoped` is supported.
+* Works exactly like Vue SFC styles.
+
+---
+
+### Metadata
+
+* YAML frontmatter is compiled into a `.meta.json` file alongside the compiled component.
 * Example:
 
 ```md
 ---
-title: My Page
-description: Example page
-server: true
----
-```
-
-* Developers can access meta for any purpose, including search, filtering, or head management.
-
+title: Hello World
+description: This is my first MDV page
 ---
 
-## 6. Accessing Meta
-
-MDV provides a `useMeta` composable for accessing component meta.
-
-### Features
-
-* Defaults to the **current component**.
-* Optional argument to load meta from another component path.
-* Always returns a **Promise**.
-
-### Implementation
-
-```ts
-import { getCurrentInstance } from 'vue'
-
-export function useMeta(metaPath?: string): Promise<any> {
-  if (metaPath) {
-    return import(`${metaPath}.meta.json`).then(m => m.default || m)
-  } else {
-    const instance = getCurrentInstance()
-    const meta = instance?.proxy?.metaData || null
-    return Promise.resolve(meta)
-  }
-}
+# Hello World
 ```
 
-### Usage Examples
+Compiles into:
 
-**Current component:**
+* `HelloWorld.vue`
+* `HelloWorld.meta.json`
 
-```ts
-const meta = await useMeta()
-console.log(meta.title) // or access via $meta inside MDV template
-```
-
-**Another component:**
+You can access metadata via the `useMeta` composable.
 
 ```ts
-const otherMeta = await useMeta('/pages/OtherPage')
-console.log(otherMeta.title)
+import { useMeta } from 'mdv'
+
+const meta = await useMeta() // current component
+const otherMeta = await useMeta('/path/to/OtherComponent')
 ```
 
-* Use with `useHead` for dynamic head tags:
-
-```ts
-import { useHead } from '@vueuse/head'
-const meta = await useMeta()
-useHead({
-  title: meta?.title,
-  meta: [
-    { name: 'description', content: meta?.description }
-  ]
-})
-```
-
-* Inside MDV templates, you can reference `$meta` directly:
+In templates, `$meta` is available:
 
 ```md
 # {{ $meta.title }}
@@ -166,35 +126,23 @@ useHead({
 
 ---
 
-## 7. Full Vue App Example
-
-MDV can be used to build full Vue applications in a markdown repo-based structure:
+## Example: Full Vue App in Markdown
 
 ```md
 <v-app>
   # My Markdown-Vue App
-  Welcome to my MDV site.
-
-  | id | name | action |
-  |----|------|--------|
-  { users }
+  This is my MDV website
 </v-app>
 ```
 
-* Components, loops, and dynamic tables work seamlessly.
-* Scripts and styles can be scoped per component.
-* Metadata is accessible via JSON or `$meta` for head management or other purposes.
-
 ---
 
-## 8. Philosophy
+## Use Cases
 
-* **Vue-centric:** MDV leverages Vue’s reactivity and SFC philosophy.
-* **Repo-based CMS friendly:** Each component is a standalone file with optional meta JSON.
-* **Static or dynamic:** Supports static site generation or fully reactive apps.
-* **Lightweight:** Components are small; meta and assets are separate.
-* **Markdown-first:** Maintains readable, markdown-style content with advanced reactive features.
+* **Static websites**: MDV builds raw Markdown+Vue repos into Vue-powered static sites.
+* **Repo-based CMS**: Since Markdown documents are the source of truth, your repo is the CMS.
+* **Documentation & Blogs**: Alternative to VitePress, but with richer Vue integration.
+
+Unlike VitePress, MDV projects always preserve a plain Markdown version of your content in the repo, making it easier to audit, share, and reuse.
 
 ---
-
-*End of MDV Documentation*
