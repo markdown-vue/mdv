@@ -223,7 +223,7 @@ export function extractScriptStyle(mdContent: string) {
 
     return {
         scriptSetup: scriptSetupMatch ? scriptSetupMatch[2] : '',
-        scriptSetupProps: scriptSetupMatch ? 'setup' + (scriptSetupMatch[1]?.trim() ? ' ' + scriptSetupMatch[1].trim() : '') : '',
+        scriptSetupProps: scriptSetupMatch ? (scriptSetupMatch[1]?.trim() ? ' ' + scriptSetupMatch[1].trim() : '') : '',
         styles: [...styleMatch ?? []],
     }
 }
@@ -251,7 +251,7 @@ export function compileMDV(mdContent: string, metaPath: string, options: Compile
 ${template}
 </template>
 
-<script ${finalScriptSetupProps}>
+<script setup ${finalScriptSetupProps}>
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf('/') + 1)}'
 ${scriptImports}
