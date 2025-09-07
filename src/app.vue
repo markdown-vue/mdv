@@ -9,7 +9,7 @@
         <hr></hr>
         <!-- Example's meta -->
         <div v-if="meta">
-            <h2>Example component meta</h2>
+            <h2>Frontmatter / Meta</h2>
             <ul>
                 <li v-for="(value, key) in meta" :key="key">
                     <b>{{ key }}</b>: {{ value }}
