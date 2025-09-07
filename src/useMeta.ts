@@ -1,8 +1,10 @@
-import { getCurrentInstance, getCurrentScope, inject, reactive, ref, unref } from 'vue'
+import { getCurrentInstance } from 'vue'
 
 type Meta = Record<string, any>
 
-export function useMeta<T extends string | undefined = undefined>(metaPath?: string | undefined): T extends string ? Promise<Meta> : Meta {
+const cacheDir = '.mdv-cache'
+
+export function useMeta<T extends string | undefined = undefined>(metaPath?: `~/${string}.mdv.json` | undefined): T extends string ? Promise<Meta> : Meta {
     const instance = (getCurrentInstance() as any)
     if(!metaPath) {
         return instance.provides?.meta as any
@@ -14,5 +16,7 @@ export function useMeta<T extends string | undefined = undefined>(metaPath?: str
         return fetch(importeeMetaPath).then(res => res.json())
     }
 
-    return fetch(metaPath).then(res => res.json())
+    const path = metaPath.startsWith('~/') ? `/${cacheDir}/${metaPath.substring(2)}` : `/${cacheDir}/${metaPath}`
+
+    return fetch(path).then(res => res.json())
 }

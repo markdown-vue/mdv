@@ -3,6 +3,7 @@ import MarkdownIt from 'markdown-it'
 import { u } from 'unist-builder'
 import { visit } from 'unist-util-visit'
 import { MDVNode } from './global'
+import { CompileMDVOptions } from './types/mdv-config'
 
 /**
  * Parse frontmatter
@@ -161,7 +162,7 @@ export function transformAST(ast: MDVNode): MDVNode {
             const cellValue = node.propsLine.match(/cell-value-prop="(.+?)"/)?.[1] || 'value'
             const placeholder = node.placeholder;
 
-            const headersVar = `mdv_headers_${tableCounter++}`
+            const headersVar = `__mdv_headers_${tableCounter++}`
             scriptHeaders.push(`const ${headersVar} = ${JSON.stringify(node.headers ?? [])}`)
 
             node.value = `
@@ -211,68 +212,71 @@ export function astToTemplate(ast: MDVNode): string {
 }
 
 /**
- * Extract script and style
+ * Extract user <script setup> and <style> content along with their props/attributes
  */
 export function extractScriptStyle(mdContent: string) {
-    const scriptMatch = mdContent.match(/<script[^>]*>([\s\S]*?)<\/script>/)
-    const styleMatch = mdContent.match(/<style[^>]*>([\s\S]*?)<\/style>/)
+    const scriptSetupMatch = mdContent.match(/<script\s+setup([^>]*)>([\s\S]*?)<\/script>/)
+    const styleMatch = mdContent.match(/<style([^>]*)>([\s\S]*?)<\/style>/)
 
     return {
-        script: scriptMatch ? scriptMatch[1] : '',
-        style: styleMatch ? styleMatch[1] : ''
+        scriptSetup: scriptSetupMatch ? scriptSetupMatch[2] : '',
+        scriptSetupProps: scriptSetupMatch ? 'setup' + (scriptSetupMatch[1]?.trim() ? ' ' + scriptSetupMatch[1].trim() : '') : '',
+        style: styleMatch ? styleMatch[2] : '',
+        styleProps: styleMatch ? styleMatch[1].trim() : ''
     }
 }
 
-/**
- * Compile MDV
- */
-export function compileMDV(mdContent: string, metaPath: string) {
+export function compileMDV(mdContent: string, metaPath: string, options: CompileMDVOptions = {}) {
     const { content, meta } = parseFrontmatter(mdContent)
-    const { script, style } = extractScriptStyle(content)
+    const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, style, styleProps: extractedStyleProps } = extractScriptStyle(content)
+
+    // Remove all <script> and <style> blocks
     const cleanedContent = content.replace(
         /<script[^>]*>[\s\S]*?<\/script>|<style[^>]*>[\s\S]*?<\/style>/g,
         ''
     )
+
     const ast = markdownToAST(cleanedContent)
     const transformed = transformAST(ast)
     const template = astToTemplate(transformed)
 
-    // Inject table headers script if exists
     const tableHeadersScript = (transformed['tableHeadersScript'] ?? []).join('\n')
 
-    const scriptImports = script.split('\n').filter(line => line.match(/^import/)).join('\n')
-    const cleanedScript = script.split('\n').filter(line => !line.match(/^import/)).join('\n')
+    const scriptImports = scriptSetup.split('\n').filter(line => line.match(/^import/)).join('\n')
+    const cleanedScriptSetup = scriptSetup.split('\n').filter(line => !line.match(/^import/)).join('\n')
+
+    // Use extracted scriptSetup props or fallback to options
+    const finalScriptSetupProps = options.scriptSetupProps ?? extractedScriptSetupProps
+    const finalStyleProps = options.styleProps ?? extractedStyleProps
 
     const vueSFC = `
 <template>
 ${template}
 </template>
 
-<script lang="ts">
-${tableHeadersScript}
-const $meta = ${JSON.stringify(meta)}
-</script>
-
-<script setup lang="ts">
-import { provide } from 'vue'
+<script ${finalScriptSetupProps}>
+import { provide as __mdvProvide } from 'vue'
+import $meta from './${metaPath.substring(metaPath.lastIndexOf('/') + 1)}'
 ${scriptImports}
 
-provide('meta', {
+${tableHeadersScript}
+
+__mdvProvide('meta', {
     ...$meta,
     metaPath: '${metaPath}'
 })
 
-${cleanedScript}
-
+${cleanedScriptSetup}
 
 </script>
 
-<style scoped>
+<style ${finalStyleProps}>
 ${style}
 </style>
 `
     return { content: vueSFC, meta }
 }
+
 
 export function createTSDeclare(mdPath: string, componentPath: string) {
     let componentName = mdPath.substring(mdPath.lastIndexOf('/') + 1, mdPath.lastIndexOf('.v.md'));

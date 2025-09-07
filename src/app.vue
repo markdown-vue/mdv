@@ -7,8 +7,14 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue';
 import Example from '~/examples/example.v.md';
+import { useMeta } from './useMeta';
 
+onMounted(async () => {
+    const meta = await useMeta('~/examples/example.mdv.json')
+    console.log('meta', meta)
+})
 
 
 </script>

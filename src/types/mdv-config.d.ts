@@ -5,3 +5,9 @@ export interface MDVPluginOptions {
   exclude?: string | string[] // optional exclusions
   srcRoot?: string          // optional source root
 }
+
+export interface CompileMDVOptions {
+    scriptSetupProps?: string // e.g., 'setup lang="ts"'
+    scriptProps?: string      // e.g., 'lang="ts"'
+    styleProps?: string       // e.g., 'scoped'
+}
