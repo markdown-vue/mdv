@@ -1,10 +1,12 @@
 <template>
     <div id="app">
         <h1>MDV Test App</h1>
+        <hr></hr>
         <!-- Import and use an MDV page -->
         <Example />
 
         <br></br>
+        <hr></hr>
         <!-- Example's meta -->
         <div v-if="meta">
             <h2>Example component meta</h2>
