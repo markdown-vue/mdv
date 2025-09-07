@@ -11,3 +11,5 @@ export interface CompileMDVOptions {
     scriptProps?: string      // e.g., 'lang="ts"'
     styleProps?: string       // e.g., 'scoped'
 }
+
+export type Meta = Record<string, any>
