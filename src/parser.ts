@@ -274,6 +274,15 @@ ${style}
     return { content: vueSFC, meta }
 }
 
+export function createTSDeclare(mdPath: string, componentPath: string) {
+    let componentName = mdPath.substring(mdPath.lastIndexOf('/') + 1, mdPath.lastIndexOf('.v.md'));
+    componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+    return `declare module '${mdPath}' {
+        import ${componentName} from '${componentPath}'
+        export default ${componentName}
+    }`
+}
+
 /**
  * Escape HTML
  */

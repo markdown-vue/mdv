@@ -1,7 +1,7 @@
 import { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
-import { compileMDV } from './parser'
+import { compileMDV, createTSDeclare } from './parser'
 import { MDVPluginOptions } from './types/mdv-config'
 
 export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
@@ -52,6 +52,10 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             fs.writeFileSync(id, content, 'utf-8')
             fs.writeFileSync(id.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
 
+            // create declaration
+            const declaration = createTSDeclare(mdFile, id);
+            fs.writeFileSync(id.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+
             return content // <- valid SFC string
         },
 
@@ -68,6 +72,10 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true })
             fs.writeFileSync(vueCachePath, content, 'utf-8')
             fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
+
+            // create declaration
+            const declaration = createTSDeclare(`~/${path.relative(srcRoot, file).replace(/\\/g, "/")}`, `./${path.basename(vueCachePath)}`);
+            fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
 
             const mod = server.moduleGraph.getModuleById('\0mdv:' + file)
             if (mod) server.moduleGraph.invalidateModule(mod)
