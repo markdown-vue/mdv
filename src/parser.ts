@@ -215,28 +215,26 @@ export function astToTemplate(ast: MDVNode): string {
  * Extract user <script setup> and <style> content along with their props/attributes
  */
 export function extractScriptStyle(mdContent: string) {
-    const scriptSetupMatch = mdContent.match(/<script\s+setup([^>]*)>([\s\S]*?)<\/script>/)
-    const styleMatch = mdContent.match(/<style([^>]*)>([\s\S]*?)<\/style>/)
+    const stripped = stripCodeBlocks(mdContent);
+
+    const scriptSetupMatch = stripped.match(/<script\s+setup([^>]*)>([\s\S]*?)<\/script>/)
+    const styleMatch = stripped.match(/<style([^>]*)>([\s\S]*?)<\/style>/ig)
+
 
     return {
         scriptSetup: scriptSetupMatch ? scriptSetupMatch[2] : '',
         scriptSetupProps: scriptSetupMatch ? 'setup' + (scriptSetupMatch[1]?.trim() ? ' ' + scriptSetupMatch[1].trim() : '') : '',
-        style: styleMatch ? styleMatch[2] : '',
-        styleProps: styleMatch ? styleMatch[1].trim() : ''
+        styles: [...styleMatch ?? []],
     }
 }
 
 export function compileMDV(mdContent: string, metaPath: string, options: CompileMDVOptions = {}) {
     const { content, meta } = parseFrontmatter(mdContent)
-    const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, style, styleProps: extractedStyleProps } = extractScriptStyle(content)
+    const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, styles } = extractScriptStyle(content)
 
-    // Remove all <script> and <style> blocks
-    const cleanedContent = content.replace(
-        /<script[^>]*>[\s\S]*?<\/script>|<style[^>]*>[\s\S]*?<\/style>/g,
-        ''
-    )
+    
 
-    const ast = markdownToAST(cleanedContent)
+    const ast = markdownToAST(content)
     const transformed = transformAST(ast)
     const template = astToTemplate(transformed)
 
@@ -247,7 +245,6 @@ export function compileMDV(mdContent: string, metaPath: string, options: Compile
 
     // Use extracted scriptSetup props or fallback to options
     const finalScriptSetupProps = options.scriptSetupProps ?? extractedScriptSetupProps
-    const finalStyleProps = options.styleProps ?? extractedStyleProps
 
     const vueSFC = `
 <template>
@@ -270,9 +267,7 @@ ${cleanedScriptSetup}
 
 </script>
 
-<style ${finalStyleProps}>
-${style}
-</style>
+${styles.join('\n')}
 `
     return { content: vueSFC, meta }
 }
@@ -296,4 +291,17 @@ function escapeHtml(str: string) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
+}
+
+/**
+ * Strip code blocks
+ * 
+ * @param mdContent 
+ * @returns 
+ */
+function stripCodeBlocks(mdContent: string): string {
+    // Replace fenced code blocks with placeholders
+    return mdContent.replace(/```[\s\S]*?```/g, match => {
+        return match.replace(/./g, ' '); // preserve line count for error reporting
+    });
 }

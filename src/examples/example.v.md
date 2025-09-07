@@ -25,6 +25,15 @@ This is an example MDV component.
 |No item found |
 { :data-source="rows" }
 
+```html
+<style>
+    
+h1, h2, h3, h4, h5, h6 { 
+    font-weight: bold;
+}
+</style>
+```
+
 
 
 <script setup lang="ts">
@@ -51,12 +60,12 @@ const user = ref({
  * MDV Component Setup
  * You can write your Vue setup here.
  * e.g. import UserBadge from './UserBadge.vue'
- * const user = useUser()
+ * const user = useUser() 
  */
 </script> 
  
 <style scoped>
-/* MDV Component Styles */
+/* MDV Component Styles */ 
 h1, h2, h3, h4, h5, h6 {
     font-weight: bold;
     font-family: monospace;
