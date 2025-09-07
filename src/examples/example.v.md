@@ -20,15 +20,22 @@ This is an example MDV component.
 <Button :to="user.url" @click="onClick(user)" v-if="user.active" >Click me</Button>
 ```
 
-| id |name|action|
-|----|----|------|
-| No item found  |
+|id|name|action|
+|--|----|------|
+|No item found |
 { :data-source="rows" }
 
 
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useMeta } from '../../src/useMeta'
+
+console.log('meta', useMeta())
+
+onMounted(async () => {
+    
+}) 
 
 const rows = ref([
     { id: 1, name: { value: 'John Doe' } },

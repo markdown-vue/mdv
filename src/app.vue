@@ -7,7 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import Example from './examples/example.v.md'
+import Example from '~/examples/example.v.md';
+
 
 </script>
 

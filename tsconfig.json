@@ -19,8 +19,9 @@
         "baseUrl": ".", // resolve paths from project root
         "paths": {
             "~/*": [
-                "src/*"
-            ]
+                "src/*",
+                ".mdv-cache/*"
+            ],
         },
         "noEmit": true // Vite handles compilation
     },
@@ -28,8 +29,11 @@
         "src/**/*.ts",
         "src/**/*.d.ts",
         "src/**/*.vue",
-        "src/**/*.md",
-        "src/global.d.ts"
+        "src/**/*.v.md",
+        "src/global.d.ts",
+        ".mdv-cache/**/*.ts",
+        ".mdv-cache/**/*.d.ts",
+        ".mdv-cache/**/*.vue",
     ],
     "exclude": [
         "node_modules",

@@ -170,7 +170,7 @@ export function transformAST(ast: MDVNode): MDVNode {
     <tr>${node.headers?.map((h: string) => `<th>${h}</th>`).join('')}</tr>
   </thead>
   <tbody>
-    <tr v-if="${dataSource} && ${dataSource}.length > 0" v-for="item in ${dataSource}" :key="item.${rowKey}">
+    <tr v-if="${dataSource} && ${dataSource}.length > 0" v-for="item in (${dataSource} as any[])" :key="item.${rowKey}">
       <td v-for="h in ${headersVar}" :key="h">
           <template v-if="item[h]">
             <template v-if="typeof item[h] === 'object'">
@@ -226,7 +226,7 @@ export function extractScriptStyle(mdContent: string) {
 /**
  * Compile MDV
  */
-export function compileMDV(mdContent: string) {
+export function compileMDV(mdContent: string, metaPath: string) {
     const { content, meta } = parseFrontmatter(mdContent)
     const { script, style } = extractScriptStyle(content)
     const cleanedContent = content.replace(
@@ -240,18 +240,31 @@ export function compileMDV(mdContent: string) {
     // Inject table headers script if exists
     const tableHeadersScript = (transformed['tableHeadersScript'] ?? []).join('\n')
 
+    const scriptImports = script.split('\n').filter(line => line.match(/^import/)).join('\n')
+    const cleanedScript = script.split('\n').filter(line => !line.match(/^import/)).join('\n')
+
     const vueSFC = `
 <template>
 ${template}
 </template>
 
-<script setup>
-${script}
-</script>
-
-<script>
+<script lang="ts">
 ${tableHeadersScript}
 const $meta = ${JSON.stringify(meta)}
+</script>
+
+<script setup lang="ts">
+import { provide } from 'vue'
+${scriptImports}
+
+provide('meta', {
+    ...$meta,
+    metaPath: '${metaPath}'
+})
+
+${cleanedScript}
+
+
 </script>
 
 <style scoped>
