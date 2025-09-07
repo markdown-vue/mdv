@@ -12,7 +12,7 @@ import Example from '~/examples/example.v.md';
 import { useMeta } from './useMeta';
 
 onMounted(async () => {
-    const meta = await useMeta('~/examples/example.mdv.json')
+    const meta = await useMeta('~/examples/example')
     console.log('meta', meta)
 })
 

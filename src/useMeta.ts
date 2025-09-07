@@ -4,7 +4,7 @@ type Meta = Record<string, any>
 
 const cacheDir = '.mdv-cache'
 
-export function useMeta<T extends string | undefined = undefined>(metaPath?: `~/${string}.mdv.json` | undefined): T extends string ? Promise<Meta> : Meta {
+export function useMeta<T extends string | undefined = undefined>(metaPath?: `~/${string}` | undefined): T extends string ? Promise<Meta> : Meta {
     const instance = (getCurrentInstance() as any)
     if(!metaPath) {
         return instance.provides?.meta as any
@@ -16,7 +16,9 @@ export function useMeta<T extends string | undefined = undefined>(metaPath?: `~/
         return fetch(importeeMetaPath).then(res => res.json())
     }
 
-    const path = metaPath.startsWith('~/') ? `/${cacheDir}/${metaPath.substring(2)}` : `/${cacheDir}/${metaPath}`
+    let path = metaPath.startsWith('~/') ? `/${cacheDir}/${metaPath.substring(2)}` : `/${cacheDir}/${metaPath}`
+    if(path.endsWith('.v.md')) path = path.replace(/\.v\.md$/, '.mdv.json')
+    else if(!path.endsWith('.mdv.json')) path += '.mdv.json'
 
     return fetch(path).then(res => res.json())
 }
