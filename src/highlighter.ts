@@ -19,4 +19,13 @@ export async function highlightCode(code: string, lang: string, theme: string = 
 }
 
 // Setup highlighter on startup
-getMDVHighlighter();
+const setupHighlighter = (() => {
+    let executed = false
+    return () => {
+        if (executed) return
+        executed = true
+        getMDVHighlighter()
+    }
+})
+
+setupHighlighter()

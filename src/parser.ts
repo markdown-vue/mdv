@@ -274,21 +274,23 @@ ${styles.join('\n')}
 }
 
 
-export function createTSDeclare(mdPath: string, componentPath: string) {
-    let componentName = mdPath.substring(mdPath.lastIndexOf('/') + 1, mdPath.lastIndexOf('.v.md'));
-    componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
-    return `declare module '${mdPath}' {
-        import ${componentName} from '${componentPath}'
-        export default ${componentName}
-    }`
-}
-
 export function createShim(componentPath: string) {
     let componentName = componentPath.substring(componentPath.lastIndexOf('/') + 1, componentPath.lastIndexOf('.vue'));
-    componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+    componentName = pascalCase(componentName);
     return `import ${componentName} from '${componentPath}';
 export default ${componentName}
 `
+}
+
+/**
+ * Component names need to be PascalCase and escape unsupported characters
+ */
+function pascalCase(str: string) {
+    return str
+        .replace(/[^a-zA-Z0-9]+/g, ' ')
+        .split(' ')
+        .map(s => s.charAt(0).toUpperCase() + s.substring(1))
+        .join('')
 }
 
 /**
