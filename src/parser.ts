@@ -4,6 +4,7 @@ import { u } from 'unist-builder'
 import { visit } from 'unist-util-visit'
 import { MDVNode } from './global'
 import { CompileMDVOptions } from './types/mdv-config'
+import { highlightCode } from './highlighter'
 
 /**
  * Parse frontmatter
@@ -18,7 +19,7 @@ const md = new MarkdownIt({ html: true, breaks: true })
 /**
  * Markdown parser to AST
  */
-export function markdownToAST(mdContent: string): MDVNode {
+export async function markdownToAST(mdContent: string): Promise<MDVNode> {
     const tokens = md.parse(mdContent, {})
     const astChildren: MDVNode[] = []
     const stack: { tag: string; children: MDVNode[] }[] = []
@@ -111,9 +112,10 @@ export function markdownToAST(mdContent: string): MDVNode {
             else astChildren.push(u('html', inlineContent) as MDVNode)
         } else if (token.type === 'fence') {
             const lang = token.info.trim()
-            const codeHtml = `<pre><code${lang ? ` class="language-${lang}"` : ''}>${escapeHtml(token.content)}</code></pre>`
+            const codeHtml = await highlightCode(token.content, lang)
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', codeHtml) as MDVNode)
             else astChildren.push(u('html', codeHtml) as MDVNode)
+
         }
 
         i++
@@ -228,13 +230,13 @@ export function extractScriptStyle(mdContent: string) {
     }
 }
 
-export function compileMDV(mdContent: string, metaPath: string, options: CompileMDVOptions = {}) {
+export async function compileMDV(mdContent: string, metaPath: string, options: CompileMDVOptions = {}) {
     const { content, meta } = parseFrontmatter(mdContent)
     const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, styles } = extractScriptStyle(content)
 
     
 
-    const ast = markdownToAST(content)
+    const ast = await markdownToAST(content)
     const transformed = transformAST(ast)
     const template = astToTemplate(transformed)
 
