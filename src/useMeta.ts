@@ -1,7 +1,7 @@
 import { getCurrentInstance } from 'vue'
 import { Meta } from './types/mdv-config';
 
-const cacheDir = '.mdv-cache'
+const cacheDir = '.mdv'
 
 export function useMeta<T extends string | undefined = undefined>(metaPath?: `~/${string}` | undefined): T extends string ? Promise<Meta> : Meta {
     const instance = (getCurrentInstance() as any)

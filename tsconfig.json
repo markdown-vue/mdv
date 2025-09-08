@@ -20,10 +20,10 @@
         "paths": {
             "~/*": [
                 "src/*",
-                ".mdv-cache/*"
+                ".mdv/*"
             ],
             "@mdv/*": [
-                ".mdv-cache/*"
+                ".mdv/*"
             ]
         },
         "noEmit": true, // Vite handles compilation
@@ -39,9 +39,9 @@
         "src/**/*.vue",
         "src/**/*.v.md",
         "src/global.d.ts",
-        ".mdv-cache/**/*.ts",
-        ".mdv-cache/**/*.d.ts",
-        ".mdv-cache/**/*.vue",
+        ".mdv/**/*.ts",
+        ".mdv/**/*.d.ts",
+        ".mdv/**/*.vue",
     ],
     "exclude": [
         "node_modules",

@@ -18,7 +18,7 @@ function create(info) {
                     // Map to .vue in cache dir
                     const cachePath = path.resolve(
                         process.cwd(),
-                        '.mdv-cache',
+                        '.mdv',
                         path.relative(process.cwd() + '/src', path.resolve(path.dirname(containingFile), text))
                     ).replace(/\.v\.md$/, '.vue');
 

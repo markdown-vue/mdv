@@ -6,8 +6,10 @@ import { MDVPluginOptions } from './types/mdv-config'
 
 export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
     const extension = options.extension || '.v.md'
-    const cacheDir = path.resolve(options.cacheDir || '.mdv-cache')
-    const srcRoot = path.resolve(options.srcRoot || 'src')
+    const cacheDirName = options.cacheDir || '.mdv';
+    const cacheDir = path.resolve(cacheDirName)
+    const srcName = options.srcRoot || 'src'
+    const srcRoot = path.resolve(srcName)
 
     if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true })
 
@@ -21,7 +23,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
         const lastModified = stats.mtimeMs
         if (compiledTimestamps.get(file) === lastModified) return
 
-        console.log(`--🔨 Compiling: ${file}`)
+        console.log(`--🔨 Compiling: ${path.relative(process.cwd(), file)}`)
         const vueCachePath = path.join(cacheDir, path.relative(srcRoot, file)).replace(/\.v\.md$/, '.vue')
         const vueDir = path.dirname(vueCachePath)
         if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true })
@@ -44,7 +46,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             if (mod) server.moduleGraph.invalidateModule(mod)
         }
 
-        console.log(`--✅ Compiled: ${vueCachePath}`)
+        console.log(`--✅ Compiled: ${(path.relative(process.cwd(), vueCachePath))}`)
         return content
     }
 
@@ -114,7 +116,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             })
 
             // Compile all existing files once
-            console.log(`🔨 MDV: Compiling all .v.md files in: ${srcRoot}`)
+            console.log(`🔨 MDV: Compiling all .v.md files in /${srcName}`)
             await compileAllMDVFiles(srcRoot, server)
             console.log(`✅ MDV: Done ✨`)
         }
