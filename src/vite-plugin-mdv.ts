@@ -1,7 +1,7 @@
 import { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
-import { compileMDV, createTSDeclare } from './parser'
+import { compileMDV, createShim, createTSDeclare } from './parser'
 import { MDVPluginOptions } from './types/mdv-config'
 
 export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
@@ -31,8 +31,12 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
                 fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
 
                 // create declaration
-                const declaration = createTSDeclare(`~/${path.relative(srcRoot, fullPath).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`)
-                fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+                // const declaration = createTSDeclare(`~/${path.relative(srcRoot, fullPath).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`)
+                // fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+
+                // create shim
+                const shim = createShim(`./${path.basename(vueCachePath)}`)
+                fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.v.md.ts'), shim, 'utf-8')
             }
         }
     }
@@ -77,8 +81,12 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             fs.writeFileSync(id.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
 
             // create declaration
-            const declaration = createTSDeclare(mdFile, id);
-            fs.writeFileSync(id.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+            // const declaration = createTSDeclare(mdFile, id);
+            // fs.writeFileSync(id.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+
+            // create shim
+            const shim = createShim(`./${path.basename(id)}`)
+            fs.writeFileSync(id.replace(/\.vue$/, '.v.md.ts'), shim, 'utf-8')
 
             return content // <- valid SFC string
         },
@@ -98,8 +106,12 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
 
             // create declaration
-            const declaration = createTSDeclare(`~/${path.relative(srcRoot, file).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`);
-            fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+            // const declaration = createTSDeclare(`~/${path.relative(srcRoot, file).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`);
+            // fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+
+            // create shim
+            const shim = createShim(`./${path.basename(vueCachePath)}`)
+            fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.v.md.ts'), shim, 'utf-8')
 
             const mod = server.moduleGraph.getModuleById('\0mdv:' + file)
             if (mod) server.moduleGraph.invalidateModule(mod)

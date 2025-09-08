@@ -33,7 +33,7 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
             let headers: string[] = []
             let propsLine: string | null = null
             let placeholder: string | null = null
-            
+
             const oldI = i;
 
             i++
@@ -48,7 +48,7 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
                 }
 
                 // placeholder
-                if(t.type === 'tbody_open' && tokens[i + 1].type === 'tr_open' && tokens[i + 2].type === 'td_open' && tokens[i + 3].type === 'inline') {
+                if (t.type === 'tbody_open' && tokens[i + 1].type === 'tr_open' && tokens[i + 2].type === 'td_open' && tokens[i + 3].type === 'inline') {
                     const textToken = tokens[i + 3]
                     placeholder = textToken.content;
                 }
@@ -63,7 +63,7 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
                 i++
             }
 
-            if(propsLine) {
+            if (propsLine) {
                 // if is dynamic table
                 astChildren.push(
                     u('table', {
@@ -87,7 +87,7 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
             const node = stack.pop()
             if (!node) { i++; continue }
             let html = `<${node.tag}>${node.children.map(c => c.value || '').join('')}</${node.tag}>`
-            
+
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', html) as MDVNode)
             else astChildren.push(u('html', html) as MDVNode)
         } else if (token.type === 'inline') {
@@ -184,12 +184,11 @@ export function transformAST(ast: MDVNode): MDVNode {
           </template>
       </td>
     </tr>
-    ${
-        placeholder ?
-        `<tr v-if="!${dataSource} || ${dataSource}.length === 0">
+    ${placeholder ?
+                    `<tr v-if="!${dataSource} || ${dataSource}.length === 0">
             <td colspan="${node.headers?.length}">${placeholder}</td>
         </tr>` : ''
-    }
+                }
   </tbody>
 </table>
             `.trim()
@@ -234,7 +233,7 @@ export async function compileMDV(mdContent: string, metaPath: string, options: C
     const { content, meta } = parseFrontmatter(mdContent)
     const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, styles } = extractScriptStyle(content)
 
-    
+
 
     const ast = await markdownToAST(content)
     const transformed = transformAST(ast)
@@ -282,6 +281,14 @@ export function createTSDeclare(mdPath: string, componentPath: string) {
         import ${componentName} from '${componentPath}'
         export default ${componentName}
     }`
+}
+
+export function createShim(componentPath: string) {
+    let componentName = componentPath.substring(componentPath.lastIndexOf('/') + 1, componentPath.lastIndexOf('.vue'));
+    componentName = componentName.charAt(0).toUpperCase() + componentName.slice(1);
+    return `import ${componentName} from '${componentPath}';
+export default ${componentName}
+`
 }
 
 /**

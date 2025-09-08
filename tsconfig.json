@@ -22,8 +22,16 @@
                 "src/*",
                 ".mdv-cache/*"
             ],
+            "@mdv/*": [
+                ".mdv-cache/*"
+            ]
         },
-        "noEmit": true // Vite handles compilation
+        "noEmit": true, // Vite handles compilation
+        "plugins": [
+            {
+                "name": "ts-mdv-plugin"
+            }
+        ]
     },
     "include": [
         "src/**/*.ts",
