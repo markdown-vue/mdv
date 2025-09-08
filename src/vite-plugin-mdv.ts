@@ -52,6 +52,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
 
     async function compileAllMDVFiles(dir: string, server?: any) {
         const files = fs.readdirSync(dir, { withFileTypes: true })
+
         for (const file of files) {
             const fullPath = path.join(dir, file.name)
             if (file.isDirectory()) {
@@ -117,6 +118,10 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
 
             // Compile all existing files once
             console.log(`🔨 MDV: Compiling all .v.md files in /${srcName}`)
+
+            const files = fs.readdirSync(srcRoot, { withFileTypes: true, recursive: true }).filter(f => f.isFile() && f.name.endsWith(extension))
+            if (files.length === 0) console.warn('\x1b[33m%s\x1b[36m%s\x1b[33m%s\x1b[36m%s\x1b[33m%s\x1b[0m', `🚨🚨🚨 No`, ` .v.md `, `files found in`, ` /${srcName} `, `directory. Make sure you have the right extension.`)
+
             await compileAllMDVFiles(srcRoot, server)
             console.log(`✅ MDV: Done ✨`)
         }
