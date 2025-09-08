@@ -105,7 +105,7 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
                     inlineContent += `<a href="${href}">`
                 }
                 else if (child.type === 'link_close') inlineContent += '</a>'
-                else inlineContent += escapeHtml(child.content || '')
+                else inlineContent += child.content || ''
             }
 
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', inlineContent) as MDVNode)
