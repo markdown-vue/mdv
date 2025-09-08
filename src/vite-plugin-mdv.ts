@@ -14,6 +14,30 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
 
     const mdvMeta = new Map<string, any>()
 
+    async function compileAllMDVFiles(dir: string) {
+        const files = fs.readdirSync(dir, { withFileTypes: true })
+        for (const file of files) {
+            const fullPath = path.join(dir, file.name)
+            if (file.isDirectory()) {
+                await compileAllMDVFiles(fullPath)
+            } else if (file.isFile() && file.name.endsWith(extension)) {
+                const mdContent = fs.readFileSync(fullPath, 'utf-8')
+                const vueCachePath = path.join(cacheDir, path.relative(srcRoot, fullPath)).replace(/\.v\.md$/, '.vue')
+                const vueDir = path.dirname(vueCachePath)
+                if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true })
+
+                const { content, meta } = await compileMDV(mdContent, path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.mdv.json')).replace(/\\/g, "/"))
+                fs.writeFileSync(vueCachePath, content, 'utf-8')
+                fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
+
+                // create declaration
+                const declaration = createTSDeclare(`~/${path.relative(srcRoot, fullPath).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`)
+                fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
+            }
+        }
+    }
+
+
     return {
         name: 'vite-plugin-mdv',
         enforce: 'pre',
@@ -21,7 +45,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
         // Resolve .v.md or extension-less import
         async resolveId(importee, importer) {
             if (importee.endsWith(extension)) {
-                if(importee.startsWith('/') || importee.startsWith('~/')) {
+                if (importee.startsWith('/') || importee.startsWith('~/')) {
                     importee = path.join(srcRoot, importee.replace(/^\/|~\//, ''))
                 }
 
@@ -68,18 +92,26 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             const mdContent = fs.readFileSync(file, 'utf-8')
             const { content, meta } = await compileMDV(mdContent, path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.mdv.json')).replace(/\\/g, "/"))
             mdvMeta.set(file, meta)
-            
+
             if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true })
             fs.writeFileSync(vueCachePath, content, 'utf-8')
             fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
 
             // create declaration
-            const declaration = createTSDeclare(`~/${path.relative(srcRoot, file).replace(/\\/g, "/")}`, `./${path.basename(vueCachePath)}`);
+            const declaration = createTSDeclare(`~/${path.relative(srcRoot, file).replace(/\\/g, "/")}`, `~/${path.relative(srcRoot, vueCachePath).replace(/\\/g, "/")}`);
             fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.d.ts'), declaration, 'utf-8')
 
             const mod = server.moduleGraph.getModuleById('\0mdv:' + file)
             if (mod) server.moduleGraph.invalidateModule(mod)
-        }
+        },
+
+        async buildStart() {
+            await compileAllMDVFiles(srcRoot)
+        },
+
+        async configureServer(server) {
+            await compileAllMDVFiles(srcRoot)
+        },
 
     }
 }
