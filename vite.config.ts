@@ -14,5 +14,4 @@ export default defineConfig({
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.v.md'],
     },
-    assetsInclude: ['**/*.v.md'],
 })
