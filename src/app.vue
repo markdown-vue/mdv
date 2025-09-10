@@ -3,7 +3,7 @@
         <h1>MDV Test App</h1>
         <hr></hr>
         <!-- Import and use an MDV page -->
-        <Example />
+        <Example msg="Hello MDV" />
 
         <br></br>
         <hr></hr>

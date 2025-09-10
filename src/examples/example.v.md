@@ -1,6 +1,6 @@
 ---
-title: Example MDV Component
-description: This is an example MDV component.
+title: Example Component
+description: This is an example mdv component
 ---
 
 # {{ $meta.title }}
@@ -11,6 +11,12 @@ description: This is an example MDV component.
 ```vue
 <Example />
 ```
+
+## Props
+
+* `msg` - a prop
+
+<b>msg</b>: {{ msg }}
 
 **MDV** Components :[user.name]{ style="color:red" }
 *Markdown-Vue* Component
@@ -39,6 +45,8 @@ h1, h2, h3, h4, h5, h6 {
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useMeta } from '../../src/useMeta'
+
+defineProps<{ msg: string }>()
 
 console.log('meta', useMeta())
 

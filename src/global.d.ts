@@ -14,4 +14,5 @@ export type MDVNode = Node & {
     propsLine?: string      // for table
     placeholder?: string   // for table
     tableHeadersScript?: string[]
+    shiki?: { key: string, code: string }
 }

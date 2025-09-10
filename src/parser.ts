@@ -5,6 +5,11 @@ import { visit } from 'unist-util-visit'
 import { MDVNode } from './global'
 import { CompileMDVOptions } from './types/mdv-config'
 import { highlightCode } from './highlighter'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import { Diagnostic, TextDocuments } from 'vscode-languageserver/node'
+
+
+const codeBlockComponentPath = '../../src/components/code-block.vue';
 
 /**
  * Parse frontmatter
@@ -19,10 +24,18 @@ const md = new MarkdownIt({ html: true, breaks: true })
 /**
  * Markdown parser to AST
  */
-export async function markdownToAST(mdContent: string): Promise<MDVNode> {
+
+export async function markdownToAST(
+  mdContent: string,
+  shikiPath: string,
+  customComponents: Record<string, string> = {}
+): Promise<{ ast: MDVNode, shikis: Record<string, string>, imports: string[] }> {
+
     const tokens = md.parse(mdContent, {})
     const astChildren: MDVNode[] = []
     const stack: { tag: string; children: MDVNode[] }[] = []
+    const shikis: Record<string, string> = {}
+    const imports: string[] = []
 
     let i = 0
     while (i < tokens.length) {
@@ -47,7 +60,6 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
                     continue
                 }
 
-                // placeholder
                 if (t.type === 'tbody_open' && tokens[i + 1].type === 'tr_open' && tokens[i + 2].type === 'td_open' && tokens[i + 3].type === 'inline') {
                     const textToken = tokens[i + 3]
                     placeholder = textToken.content;
@@ -64,7 +76,6 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
             }
 
             if (propsLine) {
-                // if is dynamic table
                 astChildren.push(
                     u('table', {
                         headers,
@@ -74,23 +85,35 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
                 )
                 i++
                 continue
-            }
-            else {
-                // back to static table
+            } else {
                 i = oldI
             }
         }
 
+        // Handle opening tags
         if (token.type.endsWith('_open')) {
-            stack.push({ tag: token.tag, children: [] })
-        } else if (token.type.endsWith('_close')) {
+            const tag = token.tag
+            stack.push({ tag, children: [] })
+        } 
+        // Handle closing tags
+        else if (token.type.endsWith('_close')) {
             const node = stack.pop()
             if (!node) { i++; continue }
-            let html = `<${node.tag}>${node.children.map(c => c.value || '').join('')}</${node.tag}>`
+
+            // check if there is a custom component mapping
+            const componentPath = customComponents[node.tag];
+            const finalTag = componentPath ? getComponentName(componentPath) : node.tag;
+            const importLine = `import ${finalTag} from '${componentPath}';`;
+            if(componentPath && !imports.includes(importLine)) 
+                imports.push(importLine);
+
+            const html = `<${finalTag}>${node.children.map(c => c.value || '').join('')}</${finalTag}>`
 
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', html) as MDVNode)
             else astChildren.push(u('html', html) as MDVNode)
-        } else if (token.type === 'inline') {
+        } 
+        // Inline content
+        else if (token.type === 'inline') {
             let inlineContent = ''
             for (const child of token.children || []) {
                 if (child.type === 'text') inlineContent += child.content
@@ -110,18 +133,26 @@ export async function markdownToAST(mdContent: string): Promise<MDVNode> {
 
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', inlineContent) as MDVNode)
             else astChildren.push(u('html', inlineContent) as MDVNode)
-        } else if (token.type === 'fence') {
+        } 
+        // Fenced code blocks
+        else if (token.type === 'fence') {
             const lang = token.info.trim()
-            const codeHtml = await highlightCode(token.content, lang)
+            const shiki = { key: `shiki_${Object.keys(shikis).length}`, code: await highlightCode(token.content, lang) }
+            shikis[shiki.key] = shiki.code
+
+            const codeHtml = `<CodeBlock name="${shiki.key}" highlight-path="${shikiPath}" raw='${escapeHtml(token.content)}'></CodeBlock>`
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', codeHtml) as MDVNode)
             else astChildren.push(u('html', codeHtml) as MDVNode)
-
         }
 
         i++
     }
 
-    return u('root', astChildren) as MDVNode
+    return {
+        ast: u('root', astChildren) as MDVNode,
+        shikis,
+        imports
+    }
 }
 
 /**
@@ -229,13 +260,13 @@ export function extractScriptStyle(mdContent: string) {
     }
 }
 
-export async function compileMDV(mdContent: string, metaPath: string, options: CompileMDVOptions = {}) {
+export async function compileMDV(mdContent: string, metaPath: string, shikiPath:string, options: CompileMDVOptions = {}) {
     const { content, meta } = parseFrontmatter(mdContent)
     const { scriptSetup, scriptSetupProps: extractedScriptSetupProps, styles } = extractScriptStyle(content)
 
 
 
-    const ast = await markdownToAST(content)
+    const { ast, shikis, imports } = await markdownToAST(content, shikiPath, options.customComponents)
     const transformed = transformAST(ast)
     const template = astToTemplate(transformed)
 
@@ -255,6 +286,8 @@ ${template}
 <script setup ${finalScriptSetupProps}>
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf('/') + 1)}'
+import CodeBlock from '${codeBlockComponentPath}'
+${imports.join('\n')}
 ${scriptImports}
 
 ${tableHeadersScript}
@@ -270,10 +303,16 @@ ${cleanedScriptSetup}
 
 ${styles.join('\n')}
 `
-    return { content: vueSFC, meta }
+    return { content: vueSFC, meta, shikis }
 }
 
 
+/**
+ * Create a Vue component shim
+ * 
+ * @param componentPath 
+ * @returns 
+ */
 export function createShim(componentPath: string) {
     let componentName = componentPath.substring(componentPath.lastIndexOf('/') + 1, componentPath.lastIndexOf('.vue'));
     componentName = pascalCase(componentName);
@@ -291,6 +330,12 @@ function pascalCase(str: string) {
         .split(' ')
         .map(s => s.charAt(0).toUpperCase() + s.substring(1))
         .join('')
+}
+
+function getComponentName(path: string) {
+    return pascalCase(
+        path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.vue'))
+    );
 }
 
 /**

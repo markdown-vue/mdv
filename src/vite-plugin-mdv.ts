@@ -29,15 +29,22 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
         if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true })
 
         const mdContent = fs.readFileSync(file, 'utf-8')
-        const { content, meta } = await compileMDV(
+        const { content, meta, shikis } = await compileMDV(
             mdContent,
-            path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.mdv.json')).replace(/\\/g, "/")
+            path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.mdv.json')).replace(/\\/g, "/"),
+            `/${path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.shiki.ts')).toLowerCase().replace(/\\/g, "/")}`,
+            {
+                customComponents: {
+                }
+            }
         )
 
         mdvMeta.set(file, meta)
         fs.writeFileSync(vueCachePath, content, 'utf-8')
         fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.mdv.json'), JSON.stringify(meta, null, 2), 'utf-8')
         fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.v.md.ts'), createShim(`./${path.basename(vueCachePath)}`), 'utf-8')
+        if(Object.keys(shikis).length > 0) 
+            fs.writeFileSync(vueCachePath.replace(/\.vue$/, '.shiki.ts'), `export default ${JSON.stringify(shikis)}`)
 
         compiledTimestamps.set(file, lastModified)
 
