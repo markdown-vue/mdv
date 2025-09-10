@@ -7,9 +7,7 @@ export default defineConfig({
     plugins: [
         vue(),
         mdvPlugin({
-            extension: '.v.md',           // default
             cacheDir: '.mdv',       // default
-            include: 'src/**/*.v.md'
         })
     ],
     base: '.',

@@ -5,7 +5,7 @@ import { compileMDV, createShim } from './parser'
 import { MDVPluginOptions } from './types/mdv-config'
 
 export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
-    const extension = options.extension || '.v.md'
+    const extension = '.v.md'
     const cacheDirName = options.cacheDir || '.mdv';
     const cacheDir = path.resolve(cacheDirName)
     const srcName = options.srcRoot || 'src'
@@ -35,7 +35,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
             `/${path.relative(srcRoot, vueCachePath.replace(/\.vue$/, '.shiki.ts')).toLowerCase().replace(/\\/g, "/")}`,
             {
                 customComponents: {
-                }
+                },
             }
         )
 

@@ -29,13 +29,14 @@ export async function markdownToAST(
   mdContent: string,
   shikiPath: string,
   customComponents: Record<string, string> = {}
-): Promise<{ ast: MDVNode, shikis: Record<string, string>, imports: string[] }> {
+): Promise<{ ast: MDVNode, shikis: Record<string, string>, imports: string[], components: string[] }> {
 
     const tokens = md.parse(mdContent, {})
     const astChildren: MDVNode[] = []
     const stack: { tag: string; children: MDVNode[] }[] = []
     const shikis: Record<string, string> = {}
     const imports: string[] = []
+    const components: string[] = []
 
     let i = 0
     while (i < tokens.length) {
@@ -109,6 +110,8 @@ export async function markdownToAST(
 
             const html = `<${finalTag}>${node.children.map(c => c.value || '').join('')}</${finalTag}>`
 
+            if(!components.includes(finalTag)) components.push(finalTag);
+
             if (stack.length > 0) stack[stack.length - 1].children.push(u('html', html) as MDVNode)
             else astChildren.push(u('html', html) as MDVNode)
         } 
@@ -151,7 +154,8 @@ export async function markdownToAST(
     return {
         ast: u('root', astChildren) as MDVNode,
         shikis,
-        imports
+        imports,
+        components
     }
 }
 
