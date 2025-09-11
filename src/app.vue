@@ -3,11 +3,11 @@
         <h1>MDV Test App</h1>
         <hr></hr>
         <!-- Import and use an MDV page -->
-        <Example msg="Hello MDV" />
+        <example msg="Hello from MDV"></example>
 
         <br></br>
         <hr></hr>
-        <!-- Example's meta -->
+        <!-- Example's meta --> 
         <div v-if="meta">
             <h2>Frontmatter / Meta</h2>
             <ul>
@@ -21,9 +21,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import Example from '~/examples/example.v.md';
 import { useMeta } from './useMeta';
 import { Meta } from './types/mdv-config';
+import Example from '@mdv/examples/example.vue'
 
 const meta = ref<Meta>()
 

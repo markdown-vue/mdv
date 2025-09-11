@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files. Each `.md` file can contain:",
     "main": "index.js",
+    "bin": {
+        "mdv": "./src/cli.ts"
+    },
     "scripts": {
         "dev": "vite --host",
         "build": "vite build",
@@ -34,8 +37,11 @@
         "@types/node": "^24.3.1",
         "@vitejs/plugin-vue": "^6.0.1",
         "@volar/vue-language-server": "^1.6.5",
+        "chokidar": "^4.0.3",
+        "commander": "^14.0.0",
         "markdown-language-server": "^0.0.1",
         "shiki": "^3.12.2",
+        "ts-node": "^10.9.2",
         "typescript": "^5.9.2",
         "vite": "^7.1.4",
         "vscode-langservers-extracted": "^4.10.0",

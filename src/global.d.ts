@@ -16,3 +16,9 @@ export type MDVNode = Node & {
     tableHeadersScript?: string[]
     shiki?: { key: string, code: string }
 }
+
+declare module '*.vue' {
+  import { DefineComponent } from 'vue'
+  const component: DefineComponent<{}, {}, any>
+  export default component
+}

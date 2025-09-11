@@ -2,11 +2,10 @@ import matter from 'gray-matter'
 import MarkdownIt from 'markdown-it'
 import { u } from 'unist-builder'
 import { visit } from 'unist-util-visit'
-import { MDVNode } from './global'
-import { CompileMDVOptions } from './types/mdv-config'
-import { highlightCode } from './highlighter'
-import { TextDocument } from 'vscode-languageserver-textdocument'
-import { Diagnostic, TextDocuments } from 'vscode-languageserver/node'
+import { MDVNode } from './global.js'
+import { CompileMDVOptions } from './types/mdv-config.js'
+import { highlightCode } from './highlighter.js'
+import path from 'path'
 
 
 const codeBlockComponentPath = '../../src/components/code-block.vue';
@@ -312,20 +311,6 @@ ${styles.join('\n')}
 
 
 /**
- * Create a Vue component shim
- * 
- * @param componentPath 
- * @returns 
- */
-export function createShim(componentPath: string) {
-    let componentName = componentPath.substring(componentPath.lastIndexOf('/') + 1, componentPath.lastIndexOf('.vue'));
-    componentName = pascalCase(componentName);
-    return `import ${componentName} from '${componentPath}';
-export default ${componentName}
-`
-}
-
-/**
  * Component names need to be PascalCase and escape unsupported characters
  */
 function pascalCase(str: string) {
@@ -336,9 +321,41 @@ function pascalCase(str: string) {
         .join('')
 }
 
-function getComponentName(path: string) {
+
+
+/**
+ * Generate TypeScript GlobalComponents module string
+ * @param componentNames PascalCase component names
+ */
+export function generateGlobalComponentsModule(paths: string[]): string {
+  const imports = paths
+    .map(p => {
+      const name = getComponentName(p) // or shim path
+      return `import ${name} from '${p.replace(/\.v.md$/, '.vue')}'`
+    })
+    .join('\n')
+
+  const componentNames = paths.map(getComponentName)
+
+  return `
+import type { DefineComponent } from 'vue'
+${imports}
+
+declare module '@vue/runtime-core' {
+  interface GlobalComponents {
+    ${componentNames
+      .map(c => `${c}: typeof ${c}`) // fallback to DefineComponent
+      .join('\n    ')}
+  }
+}
+  `.trim()
+}
+
+function getComponentName(rawPath: string) {
     return pascalCase(
-        path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.vue'))
+        path
+            .basename(rawPath)
+            .replace(/(\.vue|\.v.md)$/g, '')
     );
 }
 

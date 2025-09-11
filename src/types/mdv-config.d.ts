@@ -1,6 +1,7 @@
 export interface MDVPluginOptions {
     cacheDir?: string         // folder to store compiled .vue files
     srcRoot?: string          // optional source root
+    skipCleanup?: boolean     // skip cleanup of orphaned cache files
 }
 
 export interface CompileMDVOptions {

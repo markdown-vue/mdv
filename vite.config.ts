@@ -2,15 +2,13 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { mdvPlugin } from './src/vite-plugin-mdv'
 import path from 'path'
+import mdvConfig from './mdv.config'
 
 export default defineConfig({
     plugins: [
         vue(),
-        mdvPlugin({
-            cacheDir: '.mdv',       // default
-        })
+        mdvPlugin(mdvConfig)
     ],
-    base: '.',
     resolve: {
         extensions: ['.ts', '.js', '.vue', '.v.md'],
         alias: {

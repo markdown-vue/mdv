@@ -1,5 +1,5 @@
 import { getCurrentInstance } from 'vue'
-import { Meta } from './types/mdv-config';
+import { Meta } from './types/mdv-config.js';
 
 const cacheDir = '.mdv'
 
