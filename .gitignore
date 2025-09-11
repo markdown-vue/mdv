@@ -5,7 +5,10 @@ node_modules
 # MDV
 .mdv
 
+<<<<<<< HEAD
 packages
 
 # Vite
+=======
+>>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 dist

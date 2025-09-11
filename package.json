@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "name": "mdv",
     "version": "1.0.0",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files. Each `.md` file can contain:",
@@ -64,3 +65,51 @@
         ]
     }
 }
+=======
+  "name": "markdown-vue",
+  "version": "1.0.0",
+  "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files.",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "mdv": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "node --watch --loader ts-node/esm src/cli.ts",
+    "build": "tsc",
+    "watch": "node --watch --loader ts-node/esm src/cli.ts watch",
+    "type-check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markdown-vue/mdv.git"
+  },
+  "keywords": [
+    "markdown",
+    "vue",
+    "mdv",
+    "cli",
+    "compiler"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/markdown-vue/mdv/issues"
+  },
+  "homepage": "https://github.com/markdown-vue/mdv#readme",
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.1.0",
+    "shiki": "^3.12.2",
+    "unist-builder": "^4.0.0",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.3.1",
+    "chokidar": "^4.0.3",
+    "commander": "^14.0.0",
+    "typescript": "^5.9.2"
+  }
+}
+>>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
