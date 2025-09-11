@@ -1,55 +1,4 @@
 {
-<<<<<<< HEAD
-    "compilerOptions": {
-        "target": "ESNext", // modern JS output
-        "module": "ESNext", // ESM modules for Vite
-        "moduleResolution": "Node", // resolve modules like Node
-        "strict": true, // strict type checking
-        "esModuleInterop": true, // allow default import of CJS modules
-        "forceConsistentCasingInFileNames": true,
-        "skipLibCheck": true,
-        "allowJs": true, // allow JS files if needed
-        "resolveJsonModule": true, // import .json files
-        "lib": [
-            "ESNext",
-            "DOM"
-        ], // modern JS + browser types
-        "types": [
-            "node"
-        ], // Node types for fs, path
-        "baseUrl": ".", // resolve paths from project root
-        "paths": {
-            "~/*": [
-                "src/*",
-                ".mdv/*"
-            ],
-            "@mdv/*": [
-                ".mdv/*"
-            ]
-        },
-        "noEmit": true, // Vite handles compilation
-        "plugins": [
-            {
-                "name": "ts-mdv-plugin"
-            }
-        ]
-    },
-    "include": [
-        "src/**/*.ts",
-        "src/**/*.d.ts",
-        "src/**/*.vue",
-        "src/**/*.v.md",
-        "src/global.d.ts",
-        ".mdv/**/*.ts",
-        ".mdv/**/*.d.ts",
-        ".mdv/**/*.vue",
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
-}
-=======
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
@@ -71,4 +20,3 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)

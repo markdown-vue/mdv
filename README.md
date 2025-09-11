@@ -4,19 +4,11 @@
 
 Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files. Each `.md` file can contain:
 
-<<<<<<< HEAD
-* Regular Markdown content
-* Vue-style templates and components (standard HTML/Vue tags)
-* YAML frontmatter for metadata
-* Inline `<script>` and `<style>` blocks
-* A small inline component shorthand for short components
-=======
 - Regular Markdown content
 - Vue-style templates and components (standard HTML/Vue tags)
 - YAML frontmatter for metadata
 - Inline `<script>` and `<style>` blocks
 - A small inline component shorthand for short components
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 This keeps the source human-readable while enabling Vue integration.
 
@@ -24,15 +16,9 @@ This keeps the source human-readable while enabling Vue integration.
 
 ## Core principles
 
-<<<<<<< HEAD
-* **Template-first:** Markdown is the base template; sprinkle Vue/HTML where needed.
-* **Standard HTML / Vue tags:** Use normal HTML elements and Vue component tags (`<div>`, `<section>`, `<UserBadge>`, etc.). MDV follows standard Vue/HTML semantics.
-* **Inline component shorthand:** MDV provides a concise inline shorthand for simple, content-driven components.
-=======
 - **Template-first:** Markdown is the base template; sprinkle Vue/HTML where needed.
 - **Standard HTML / Vue tags:** Use normal HTML elements and Vue component tags (`<div>`, `<section>`, `<UserBadge>`, etc.). MDV follows standard Vue/HTML semantics.
 - **Inline component shorthand:** MDV provides a concise inline shorthand for simple, content-driven components.
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
@@ -63,21 +49,13 @@ Hello, {{ user.name }}
 
 MDV supports a compact inline component shorthand in two forms:
 
-<<<<<<< HEAD
-* Slot content:
-=======
 - Slot content:
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ```md
 [text]{ ::ComponentName }
 ```
 
-<<<<<<< HEAD
-* Dynamic/default-slot expression:
-=======
 - Dynamic/default-slot expression:
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ```md
 :[user.name]{ ::UserBadge }
@@ -91,13 +69,8 @@ Props, directives, and bindings are passed inside the braces:
 
 Notes:
 
-<<<<<<< HEAD
-* The inline shorthand forms `[text]{ ::Component ... }` and `:[expr]{ ::Component }` are the only MDV-specific shorthands.
-* For multiple named slots or complex layouts prefer full component tags (`<MyComponent>...</MyComponent>`).
-=======
 - The inline shorthand forms `[text]{ ::Component ... }` and `:[expr]{ ::Component }` are the only MDV-specific shorthands.
 - For multiple named slots or complex layouts prefer full component tags (`<MyComponent>...</MyComponent>`).
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
@@ -125,13 +98,8 @@ The `:` inline form places the evaluated expression into the default slot for th
 
 Notes:
 
-<<<<<<< HEAD
-* Use `:key` with every `v-for`.
-* Prefer inline loops for small, simple items.
-=======
 - Use `:key` with every `v-for`.
 - Prefer inline loops for small, simple items.
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
@@ -142,46 +110,28 @@ MDV supports dynamic rows inside standard Markdown tables using a `{ rows }` pla
 Example:
 
 ```md
-<<<<<<< HEAD
-| id | name | action |
-| --- | --- | --- |
-| No item found |
-=======
 | id            | name | action |
 | ------------- | ---- | ------ |
 | No item found |
 
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 { rows }
 ```
 
 How it works:
 
-<<<<<<< HEAD
-* `{ rows }` is replaced by rendered rows generated from your data source.
-* If the data is empty and you provided a fallback row (like `| No item found |`), that row is shown.
-* Rows may contain inline components or full HTML/Vue tags.
-=======
 - `{ rows }` is replaced by rendered rows generated from your data source.
 - If the data is empty and you provided a fallback row (like `| No item found |`), that row is shown.
 - Rows may contain inline components or full HTML/Vue tags.
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 Simple conceptual example:
 
 ```md
 <!-- body -->
-<<<<<<< HEAD
-| id | name | action |
-| --- | --- | --- |
-| No item found |
-=======
 
 | id            | name | action |
 | ------------- | ---- | ------ |
 | No item found |
 
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 { rows }
 
 <script setup>
@@ -191,13 +141,8 @@ const rows = items.map(item => `| ${item.id} | ${item.name} | [Edit]{ ::EditButt
 
 Notes:
 
-<<<<<<< HEAD
-* Fallback row is optional.
-* Keep header as normal Markdown.
-=======
 - Fallback row is optional.
 - Keep header as normal Markdown.
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
@@ -246,22 +191,6 @@ description: This is my first MDV page
 
 Emitted files:
 
-<<<<<<< HEAD
-* `HelloWorld.vue` (compiled component)
-* `HelloWorld.meta.json` (metadata)
-
-Accessing metadata:
-
-* From script: `useMeta()` **always returns a Promise** and should be `await`ed.
-
-```ts
-import { useMeta } from 'mdv'
-const meta = await useMeta()
-const otherMeta = await useMeta('/path/to/other')
-```
-
-* From templates: `$meta` is available (`{{ $meta.title }}`).
-=======
 - `HelloWorld.vue` (compiled component)
 - `HelloWorld.meta.json` (metadata)
 
@@ -276,7 +205,6 @@ const otherMeta = await useMeta("/path/to/other");
 ```
 
 - From templates: `$meta` is available (`{{ $meta.title }}`).
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
@@ -286,11 +214,7 @@ const otherMeta = await useMeta("/path/to/other");
 <v-app>
   # My Markdown-Vue App
 
-<<<<<<< HEAD
-  This is an MDV page with components and markdown.
-=======
 This is an MDV page with components and markdown.
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
   <section>
     <h2>Users</h2>
@@ -317,31 +241,14 @@ const users = ref([
 
 ## Use cases
 
-<<<<<<< HEAD
-* Static websites
-* Repo-based CMS
-* Documentation & Blogs with interactive components
-=======
 - Static websites
 - Repo-based CMS
 - Documentation & Blogs with interactive components
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
 
 ---
 
 ## Notes & best practices
 
-<<<<<<< HEAD
-* Prefer Vue-style attributes (`v-...` and `:`) and include `:key` on `v-for` lists.
-* Use the inline shorthand forms only:
-
-  * `[text]{ ::ComponentName ...props ...directives }`
-  * `:[expression]{ ::ComponentName }`
-* Use full HTML/Vue tags for multiple named slots or complex layouts.
-* Keep scripts/styles in-file for small pages; split out for complexity.
-
----
-=======
 - Prefer Vue-style attributes (`v-...` and `:`) and include `:key` on `v-for` lists.
 - Use the inline shorthand forms only:
   - `[text]{ ::ComponentName ...props ...directives }`
@@ -351,4 +258,3 @@ const users = ref([
 - Keep scripts/styles in-file for small pages; split out for complexity.
 
 ---
->>>>>>> 0948ef6 (feat: initialize Markdown-Vue (MDV) project with core functionality)
