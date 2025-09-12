@@ -24,7 +24,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         return {
             vue: vueCachePath,
             json: vueCachePath.replace(/\.vue$/, ".mdv.json"),
-            shiki: vueCachePath.replace(/\.vue$/, ".shiki.ts"),
+            shiki: vueCachePath.replace(/\.vue$/, ".shiki.js"),
         };
     }
 
@@ -51,16 +51,22 @@ export const Compiler = (options: MDVPluginOptions) => {
         const vueDir = path.dirname(vue);
         if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true });
 
+        
+        const componentsDir = path.join(cacheDir, "components");
+        const componentsDirRelative = path.relative(path.dirname(vue), componentsDir);
+
         const mdContent = fs.readFileSync(file, "utf-8");
         const { content, meta, shikis } = await compileMDV(
             mdContent,
-            path.relative(srcRoot, json).replace(/\\/g, "/"),
-            `/${path.relative(srcRoot, shiki).toLowerCase().replace(/\\/g, "/")}`,
-            `${path.join(cacheDir, "components").toLowerCase().replace(/\\/g, "/")}`,
+            path.relative(cacheDir, json).replace(/\\/g, "/"),
+            path.relative(cacheDir, shiki).toLowerCase().replace(/\\/g, "/"),
+            componentsDirRelative.toLowerCase().replace(/\\/g, "/"),
             {
                 customComponents: {},
             }
         );
+
+
 
 
         mdvMeta.set(file, meta);

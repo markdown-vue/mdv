@@ -361,6 +361,7 @@ ${cleanedScriptSetup}
 
 ${styles.join("\n")}
 `;
+
     return { content: vueSFC, meta, shikis };
 }
 
@@ -383,7 +384,7 @@ export function generateGlobalComponentsModule(paths: string[]): string {
     const imports = paths
         .map((p) => {
             const name = getComponentName(p); // or shim path
-            return `import ${name} from '${p.replace(/\.v.md$/, ".vue")}'`;
+            return `import ${name} from '${p.replace(/\.v\.md$/, ".vue")}'`;
         })
         .join("\n");
 
@@ -403,7 +404,7 @@ declare module '@vue/runtime-core' {
 }
 
 function getComponentName(rawPath: string) {
-    return pascalCase(path.basename(rawPath).replace(/(\.vue|\.v.md)$/g, ""));
+    return pascalCase(path.basename(rawPath).replace(/(\.vue|\.v\.md)$/g, ""));
 }
 
 /**

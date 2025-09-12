@@ -8,9 +8,7 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["src/*"],
-      "@mdv/*": ["src/*"],
-      "vue": ["src/global.d.ts"],
-      "vite": ["src/global.d.ts"]
+      "@mdv/*": ["src/*"]
     },
     "skipLibCheck": true,
     "rootDir": "src"
