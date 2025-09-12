@@ -1,6 +1,6 @@
 {
     "name": "@markdown-vue/mdv",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files.",
     "type": "module",
     "main": "dist/cli.js",
@@ -10,7 +10,7 @@
     "exports": {
         ".": {
             "import": "./dist/index.js",
-            "types": "./src/index.d.ts"
+            "types": "./dist/index.d.ts"
         }
     },
     "scripts": {
