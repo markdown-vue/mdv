@@ -23,7 +23,7 @@ export const Compiler = (options: MDVPluginOptions) => {
             .replace(/\.v\.md$/, ".vue");
         return {
             vue: vueCachePath,
-            json: vueCachePath.replace(/\.vue$/, ".mdvon"),
+            json: vueCachePath.replace(/\.vue$/, ".mdv.json"),
             shiki: vueCachePath.replace(/\.vue$/, ".shiki.ts"),
         };
     }
