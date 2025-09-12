@@ -39,7 +39,7 @@ program
         const { compileAllMDVFiles, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
         await compileAllMDVFiles(config.srcRoot);
         await writeGlobalComponentsDTS(config.srcRoot);
-        await copyComponentsDir(config.srcRoot);
+        await copyComponentsDir(path.resolve(__dirname, '../../src'));
     });
 
 program
@@ -55,7 +55,7 @@ program
         };
         const { watchAll, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
         await writeGlobalComponentsDTS(config.srcRoot);
-        await copyComponentsDir(config.srcRoot);
+        await copyComponentsDir(path.resolve(__dirname, '../../src'));
         await watchAll(config.srcRoot);
     });
 
