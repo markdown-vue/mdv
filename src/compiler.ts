@@ -41,7 +41,6 @@ export const Compiler = (options: MDVPluginOptions) => {
     }
 
     async function compileMDVFile(file: string, viteServer?: any) {
-        console.log(file);
         if (!fs.existsSync(file)) return;
         const stats = fs.statSync(file);
         const lastModified = stats.mtimeMs;
@@ -57,10 +56,12 @@ export const Compiler = (options: MDVPluginOptions) => {
             mdContent,
             path.relative(srcRoot, json).replace(/\\/g, "/"),
             `/${path.relative(srcRoot, shiki).toLowerCase().replace(/\\/g, "/")}`,
+            `${path.join(cacheDir, "components").toLowerCase().replace(/\\/g, "/")}`,
             {
                 customComponents: {},
-            },
+            }
         );
+
 
         mdvMeta.set(file, meta);
         fs.writeFileSync(vue, content, "utf-8");
@@ -119,8 +120,6 @@ export const Compiler = (options: MDVPluginOptions) => {
 
         const watcher = chokidar.watch(dir);
 
-        writeGlobalComponentsDTS(dir);
-
 
         watcher
             .on("add", async (file) => {
@@ -155,9 +154,21 @@ export const Compiler = (options: MDVPluginOptions) => {
         fs.mkdirSync(cacheDir, { recursive: true });
         const dtsPath = path.join(cacheDir, "mdv-global-components.d.ts");
         fs.writeFileSync(dtsPath, content, "utf-8");
-        console.log(
-            `--✅ Generated typings: ${path.relative(process.cwd(), dtsPath)} 🎇`,
-        );
+    }
+
+    /**
+     * Copy components directory to .mdv folder
+     */
+    function copyComponentsDir(dir: string = srcRoot) {
+        console.log(`--🪐 Copying MDV components directory...`);
+        // copy components directory to cache dir
+        const componentsDir = path.join(dir, "components");
+        if (fs.existsSync(componentsDir)) {
+            const componentsCacheDir = path.join(cacheDir, "components");
+            if (!fs.existsSync(componentsCacheDir)) fs.mkdirSync(componentsCacheDir, { recursive: true });
+            fs.rmSync(componentsCacheDir, { recursive: true });
+            fs.cpSync(componentsDir, componentsCacheDir, { recursive: true });
+        }
     }
 
     function getMdvFiles(dir: string = srcRoot) {
@@ -183,6 +194,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         compileAllMDVFiles,
         watchAll,
         writeGlobalComponentsDTS,
+        copyComponentsDir,
         extension,
         cacheDir,
         srcRoot,

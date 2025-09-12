@@ -5,8 +5,8 @@ import { visit } from "unist-util-visit";
 import { CompileMDVOptions, MDVNode } from "@mdv/types/mdv-config";
 import { highlightCode } from "@mdv/highlighter";
 import path from "path";
+import { pathToFileURL } from "url";
 
-const codeBlockComponentPath = "@markdown-vue/mdv";
 
 /**
  * Parse frontmatter
@@ -301,6 +301,7 @@ export async function compileMDV(
     mdContent: string,
     metaPath: string,
     shikiPath: string,
+    componentsPath: string,
     options: CompileMDVOptions = {},
 ) {
     const { content, meta } = parseFrontmatter(mdContent);
@@ -343,7 +344,7 @@ ${template}
 <script setup ${finalScriptSetupProps}>
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf("/") + 1)}'
-import {CodeBlock} from '${codeBlockComponentPath}'
+import CodeBlock from '${componentsPath}/code-block.vue'
 ${imports.join("\n")}
 ${scriptImports}
 

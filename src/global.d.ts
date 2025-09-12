@@ -12,7 +12,7 @@ declare module "vue" {
 declare module "vite" {
     interface Plugin {
         name: string;
-        enforce?: "pre" | "post";
+        enforce?: string;
         transform?: (code: string, id: string) => any;
         transformIndexHtml?: (html: string) => any;
         configureServer?: (server: {

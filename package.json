@@ -1,12 +1,12 @@
 {
     "name": "@markdown-vue/mdv",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files.",
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
     "types": "./dist/types/index.d.ts",
     "bin": {
-        "mdv": "./dist/esm/cli.js"
+        "mdv": "./dist/cjs/cli.js"
     },
     "exports": {
         ".": {
@@ -17,8 +17,8 @@
     },
     "scripts": {
         "build": "npm run build:esm && npm run build:cjs",
-        "build:esm": "tsc -p tsconfig.esm.json && tsc-alias -p tsconfig.esm.json && node ./scripts/copy-assets.cjs",
-        "build:cjs": "tsc -p tsconfig.cjs.json && tsc-alias -p tsconfig.cjs.json && node ./scripts/copy-assets.cjs",
+        "build:esm": "tsc -p tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
+        "build:cjs": "tsc -p tsconfig.cjs.json && tsc-alias -p tsconfig.cjs.json",
         "watch": "node --watch --loader ts-node/esm src/cli.ts watch",
         "type-check": "tsc --noEmit"
     },

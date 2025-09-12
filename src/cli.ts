@@ -36,8 +36,10 @@ program
             srcRoot: options.srcRoot || fileConfig.srcRoot || "src",
             cacheDir: options.cacheDir || fileConfig.cacheDir || ".mdv",
         };
-        const { compileAllMDVFiles } = Compiler(config);
-        await compileAllMDVFiles();
+        const { compileAllMDVFiles, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
+        await compileAllMDVFiles(config.srcRoot);
+        await writeGlobalComponentsDTS(config.srcRoot);
+        await copyComponentsDir(config.srcRoot);
     });
 
 program
@@ -51,7 +53,9 @@ program
             srcRoot: options.srcRoot || fileConfig.srcRoot || "src",
             cacheDir: options.cacheDir || fileConfig.cacheDir || ".mdv",
         };
-        const { watchAll } = Compiler(config);
+        const { watchAll, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
+        await writeGlobalComponentsDTS(config.srcRoot);
+        await copyComponentsDir(config.srcRoot);
         await watchAll(config.srcRoot);
     });
 

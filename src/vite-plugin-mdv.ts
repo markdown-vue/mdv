@@ -9,6 +9,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
         compileMDVFile,
         compileAllMDVFiles,
         writeGlobalComponentsDTS,
+        copyComponentsDir,
         extension,
         cacheDir,
         srcRoot,
@@ -96,6 +97,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
 
             await compileAllMDVFiles(srcRoot, server);
             await writeGlobalComponentsDTS(srcRoot);
+            await copyComponentsDir(srcRoot);
             console.log(`✅ MDV: Done ✨`);
         },
     };
