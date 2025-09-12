@@ -1,4 +1,3 @@
-import cli from "@mdv/cli";
 import { Compiler } from "@mdv/compiler";
 import { defineMdvConfig } from "@mdv/defineMdvConfig";
 import highlighter from "@mdv/highlighter";
@@ -8,7 +7,6 @@ import { mdvPlugin } from "@mdv/vite-plugin-mdv";
 import CodeBlock from "@mdv/components/code-block.vue";
 
 export {
-    cli,
     Compiler,
     defineMdvConfig,
     highlighter,
