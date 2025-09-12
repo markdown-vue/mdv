@@ -1,20 +1,24 @@
 {
     "name": "@markdown-vue/mdv",
-    "version": "1.0.5",
+    "version": "1.0.9",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files.",
-    "type": "module",
-    "main": "dist/cli.js",
+    "main": "./dist/cjs/index.js",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/types/index.d.ts",
     "bin": {
-        "mdv": "./dist/cli.js"
+        "mdv": "./dist/esm/cli.js"
     },
     "exports": {
         ".": {
-            "import": "./dist/index.js",
-            "types": "./dist/index.d.ts"
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.js",
+            "types": "./dist/types/index.d.ts"
         }
     },
     "scripts": {
-        "build": "tsc && node ./scripts/copy-assets.cjs",
+        "build": "npm run build:esm && npm run build:cjs",
+        "build:esm": "tsc -p tsconfig.esm.json && tsc-alias -p tsconfig.esm.json && node ./scripts/copy-assets.cjs",
+        "build:cjs": "tsc -p tsconfig.cjs.json && tsc-alias -p tsconfig.cjs.json && node ./scripts/copy-assets.cjs",
         "watch": "node --watch --loader ts-node/esm src/cli.ts watch",
         "type-check": "tsc --noEmit"
     },
@@ -46,5 +50,8 @@
         "typescript": "^5.9.2",
         "unist-builder": "^4.0.0",
         "unist-util-visit": "^5.0.0"
+    },
+    "devDependencies": {
+        "tsc-alias": "^1.8.16"
     }
 }

@@ -1,6 +1,6 @@
 import path from "path";
-import { compileMDV, generateGlobalComponentsModule } from "./parser.js";
-import { MDVPluginOptions } from "./types/mdv-config.js";
+import { compileMDV, generateGlobalComponentsModule } from "@mdv/parser";
+import { MDVPluginOptions } from "@mdv/types/mdv-config";
 import fs from "fs";
 import chokidar from "chokidar";
 
@@ -23,7 +23,7 @@ export const Compiler = (options: MDVPluginOptions) => {
             .replace(/\.v\.md$/, ".vue");
         return {
             vue: vueCachePath,
-            json: vueCachePath.replace(/\.vue$/, ".mdv.json"),
+            json: vueCachePath.replace(/\.vue$/, ".mdvon"),
             shiki: vueCachePath.replace(/\.vue$/, ".shiki.ts"),
         };
     }

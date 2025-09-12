@@ -1,8 +1,8 @@
 import { Plugin } from "vite";
 import fs from "fs";
 import path from "path";
-import { MDVPluginOptions } from "./types/mdv-config.js";
-import { Compiler } from "./compiler.js";
+import { MDVPluginOptions } from "@mdv/types/mdv-config";
+import { Compiler } from "@mdv/compiler";
 
 export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
     const {

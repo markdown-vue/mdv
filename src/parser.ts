@@ -2,8 +2,8 @@ import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
 import { u } from "unist-builder";
 import { visit } from "unist-util-visit";
-import { CompileMDVOptions, MDVNode } from "./types/mdv-config.js";
-import { highlightCode } from "./highlighter.js";
+import { CompileMDVOptions, MDVNode } from "@mdv/types/mdv-config";
+import { highlightCode } from "@mdv/highlighter";
 import path from "path";
 
 const codeBlockComponentPath = "@markdown-vue/mdv";

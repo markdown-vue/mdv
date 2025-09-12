@@ -1,11 +1,11 @@
-import cliJS from "./cli.js";
-import { Compiler as CompilerJS } from "./compiler.js";
-import { defineMdvConfig as defineMdvConfigJS } from "./defineMdvConfig.js";
-import highlighterJS from "./highlighter.js";
-import parserJS from "./parser.js";
-import { useMeta as useMetaJS } from "./useMeta.js";
-import { mdvPlugin as mdvPluginJS } from "./vite-plugin-mdv.js";
-import CodeBlockJS from "./components/code-block.vue";
+import cliJS from "@mdv/cli";
+import { Compiler as CompilerJS } from "@mdv/compiler";
+import { defineMdvConfig as defineMdvConfigJS } from "@mdv/defineMdvConfig";
+import highlighterJS from "@mdv/highlighter";
+import parserJS from "@mdv/parser";
+import { useMeta as useMetaJS } from "@mdv/useMeta";
+import { mdvPlugin as mdvPluginJS } from "@mdv/vite-plugin-mdv";
+import CodeBlockJS from "@mdv/components/code-block.vue";
 
 export const cli: typeof cliJS;
 export const Compiler: typeof CompilerJS;

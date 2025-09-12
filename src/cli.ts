@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { Compiler } from "./compiler.js";
+import { Compiler } from "@mdv/compiler";
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";

@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "strict": true,
     "esModuleInterop": true,
     "allowJs": true,
@@ -16,6 +13,7 @@
       "vite": ["src/global.d.ts"]
     },
     "skipLibCheck": true,
+    "rootDir": "src"
   },
   "include": ["src/**/*", "src/componetns/**/*.vue"],
   "exclude": ["node_modules", "dist"],
