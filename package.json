@@ -1,6 +1,6 @@
 {
     "name": "@markdown-vue/mdv",
-    "version": "1.0.16",
+    "version": "1.0.17",
     "description": "Markdown-Vue (MDV) lets you write Vue-style components directly inside Markdown files.",
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
@@ -9,10 +9,40 @@
         "mdv": "./dist/cjs/cli.js"
     },
     "exports": {
-        ".": {
-            "import": "./dist/esm/index.js",
-            "require": "./dist/cjs/index.js",
-            "types": "./dist/types/index.d.ts"
+        "./vite": {
+            "import": "./dist/esm/vite-plugin-mdv.js",
+            "require": "./dist/cjs/vite-plugin-mdv.js",
+            "types": "./dist/types/vite-plugin-mdv.d.ts"
+        },
+        "./cli": {
+            "import": "./dist/esm/cli.js",
+            "require": "./dist/cjs/cli.js",
+            "types": "./dist/types/cli.d.ts"
+        },
+        "./compiler": {
+            "import": "./dist/esm/compiler.js",
+            "require": "./dist/cjs/compiler.js",
+            "types": "./dist/types/compiler.d.ts"
+        },
+        "./parser": {
+            "import": "./dist/esm/parser.js",
+            "require": "./dist/cjs/parser.js",
+            "types": "./dist/types/parser.d.ts"
+        },
+        "./highlighter": {
+            "import": "./dist/esm/highlighter.js",
+            "require": "./dist/cjs/highlighter.js",
+            "types": "./dist/types/highlighter.d.ts"
+        },
+        "./usemeta": {
+            "import": "./dist/esm/useMeta.js",
+            "require": "./dist/cjs/useMeta.js",
+            "types": "./dist/types/useMeta.d.ts"
+        },
+        "./mdv-config": {
+            "import": "./dist/esm/defineMdvConfig.js",
+            "require": "./dist/cjs/defineMdvConfig.js",
+            "types": "./dist/types/defineMdvConfig.d.ts"
         }
     },
     "scripts": {
