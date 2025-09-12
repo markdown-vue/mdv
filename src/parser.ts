@@ -6,7 +6,7 @@ import { CompileMDVOptions, MDVNode } from "./types/mdv-config.js";
 import { highlightCode } from "./highlighter.js";
 import path from "path";
 
-const codeBlockComponentPath = "../../src/components/code-block.vue";
+const codeBlockComponentPath = "@markdown-vue/mdv/src/components/code-block.vue";
 
 /**
  * Parse frontmatter

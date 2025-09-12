@@ -102,20 +102,20 @@ export const Compiler = (options) => {
             .on("add", async (file) => {
             if (!file.endsWith(extension))
                 return;
-            console.log(`--🆕 Source added: ${file}`);
             await compileMDVFile(path.join(dir, file), viteServer);
+            console.log(`--⬇ MDV added: ${file}`);
         })
             .on("change", async (file) => {
             if (!file.endsWith(extension))
                 return;
-            console.log(`--👀 Source changed: ${file}`);
             await compileMDVFile(path.join(dir, file), viteServer);
+            console.log(`--🔨 MDV changed: ${file}`);
         })
             .on("unlink", (file) => {
             if (!file.endsWith(extension))
                 return;
-            console.log(`--🗑️ Source removed: ${file}`);
             cleanupCacheFiles(path.join(dir, file));
+            console.log(`--🗑️ MDV removed: ${file}`);
         });
     }
     /**

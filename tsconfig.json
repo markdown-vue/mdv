@@ -15,8 +15,8 @@
       "vue": ["src/global.d.ts"],
       "vite": ["src/global.d.ts"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "src/componetns/**/*.vue"],
+  "exclude": ["node_modules", "dist"],
 }
