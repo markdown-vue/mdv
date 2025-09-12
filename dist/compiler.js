@@ -40,7 +40,6 @@ export const Compiler = (options) => {
             return;
         const stats = fs.statSync(file);
         const lastModified = stats.mtimeMs;
-        console.log(`--👀 Checking: ${path.relative(process.cwd(), file)} - ${compiledTimestamps.get(file) === lastModified}`);
         if (compiledTimestamps.get(file) === lastModified)
             return;
         console.log(`--🔨 Compiling: ${path.relative(process.cwd(), file)}`);
@@ -106,13 +105,11 @@ export const Compiler = (options) => {
             if (!file.endsWith(extension))
                 return;
             await compileMDVFile(file, viteServer);
-            console.log(`--⬇ MDV added: ${file}`);
         })
             .on("change", async (file) => {
             if (!file.endsWith(extension))
                 return;
             await compileMDVFile(file, viteServer);
-            console.log(`--🔨 MDV changed: ${file}`);
         })
             .on("unlink", (file) => {
             if (!file.endsWith(extension))
