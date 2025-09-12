@@ -1,4 +1,4 @@
-import { defineMdvConfig } from "./src/defineMdvConfig.js";
+import { defineMdvConfig } from "./dist/defineMdvConfig.js";
 
 export default defineMdvConfig({
     cacheDir: '.mdv',
