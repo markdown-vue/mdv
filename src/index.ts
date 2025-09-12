@@ -4,7 +4,6 @@ import highlighter from "@mdv/highlighter";
 import parser from "@mdv/parser";
 import { useMeta } from "@mdv/useMeta";
 import { mdvPlugin } from "@mdv/vite-plugin-mdv";
-import CodeBlock from "../components/code-block.vue";
 
 export {
     Compiler,
@@ -12,6 +11,5 @@ export {
     highlighter,
     parser,
     useMeta,
-    mdvPlugin,
-    CodeBlock
+    mdvPlugin
 };
