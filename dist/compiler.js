@@ -35,10 +35,12 @@ export const Compiler = (options) => {
         compiledTimestamps.delete(file);
     }
     async function compileMDVFile(file, viteServer) {
+        console.log(file);
         if (!fs.existsSync(file))
             return;
         const stats = fs.statSync(file);
         const lastModified = stats.mtimeMs;
+        console.log(`--👀 Checking: ${path.relative(process.cwd(), file)} - ${compiledTimestamps.get(file) === lastModified}`);
         if (compiledTimestamps.get(file) === lastModified)
             return;
         console.log(`--🔨 Compiling: ${path.relative(process.cwd(), file)}`);
@@ -98,23 +100,24 @@ export const Compiler = (options) => {
     async function watchAll(dir = srcRoot, viteServer) {
         console.log(`👀 Watching for changes in ${dir}...`);
         const watcher = chokidar.watch(dir);
+        writeGlobalComponentsDTS(dir);
         watcher
             .on("add", async (file) => {
             if (!file.endsWith(extension))
                 return;
-            await compileMDVFile(path.join(dir, file), viteServer);
+            await compileMDVFile(file, viteServer);
             console.log(`--⬇ MDV added: ${file}`);
         })
             .on("change", async (file) => {
             if (!file.endsWith(extension))
                 return;
-            await compileMDVFile(path.join(dir, file), viteServer);
+            await compileMDVFile(file, viteServer);
             console.log(`--🔨 MDV changed: ${file}`);
         })
             .on("unlink", (file) => {
             if (!file.endsWith(extension))
                 return;
-            cleanupCacheFiles(path.join(dir, file));
+            cleanupCacheFiles(file);
             console.log(`--🗑️ MDV removed: ${file}`);
         });
     }
@@ -123,6 +126,16 @@ export const Compiler = (options) => {
      */
     function writeGlobalComponentsDTS(dir = srcRoot) {
         console.log(`--🪐 Generating global components typings...`);
+        const mdvFiles = getMdvFiles(dir);
+        // Get TS module string from parser
+        const content = generateGlobalComponentsModule(mdvFiles.map((f) => `./${path.relative(srcRoot, f).replace(/\\/g, "/")}`));
+        // Write to .d.ts
+        fs.mkdirSync(cacheDir, { recursive: true });
+        const dtsPath = path.join(cacheDir, "mdv-global-components.d.ts");
+        fs.writeFileSync(dtsPath, content, "utf-8");
+        console.log(`--✅ Generated typings: ${path.relative(process.cwd(), dtsPath)} 🎇`);
+    }
+    function getMdvFiles(dir = srcRoot) {
         const mdvFiles = [];
         function scanDir(d) {
             const entries = fs.readdirSync(d, { withFileTypes: true });
@@ -135,13 +148,7 @@ export const Compiler = (options) => {
             }
         }
         scanDir(dir);
-        // Get TS module string from parser
-        const content = generateGlobalComponentsModule(mdvFiles.map((f) => `./${path.relative(srcRoot, f).replace(/\\/g, "/")}`));
-        // Write to .d.ts
-        fs.mkdirSync(cacheDir, { recursive: true });
-        const dtsPath = path.join(cacheDir, "mdv-global-components.d.ts");
-        fs.writeFileSync(dtsPath, content, "utf-8");
-        console.log(`--✅ Generated typings: ${path.relative(process.cwd(), dtsPath)} 🎇`);
+        return mdvFiles;
     }
     return {
         compileMDVFile,

@@ -52,3 +52,5 @@ const setupHighlighter = () => {
 };
 
 setupHighlighter();
+
+export default { highlightCode, setupHighlighter };

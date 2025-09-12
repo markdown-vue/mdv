@@ -4,7 +4,7 @@ import { u } from "unist-builder";
 import { visit } from "unist-util-visit";
 import { highlightCode } from "./highlighter.js";
 import path from "path";
-const codeBlockComponentPath = "@markdown-vue/mdv/src/components/code-block.vue";
+const codeBlockComponentPath = "@markdown-vue/mdv";
 /**
  * Parse frontmatter
  */
@@ -268,7 +268,7 @@ ${template}
 <script setup ${finalScriptSetupProps}>
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf("/") + 1)}'
-import CodeBlock from '${codeBlockComponentPath}'
+import {CodeBlock} from '${codeBlockComponentPath}'
 ${imports.join("\n")}
 ${scriptImports}
 
@@ -310,7 +310,6 @@ export function generateGlobalComponentsModule(paths) {
         .join("\n");
     const componentNames = paths.map(getComponentName);
     return `
-import type { DefineComponent } from 'vue'
 ${imports}
 
 declare module '@vue/runtime-core' {
@@ -348,3 +347,14 @@ function stripCodeBlocks(mdContent) {
         return match.replace(/./g, " "); // preserve line count for error reporting
     });
 }
+export default {
+    parseFrontmatter,
+    extractScriptStyle,
+    markdownToAST,
+    transformAST,
+    astToTemplate,
+    generateGlobalComponentsModule,
+    getComponentName,
+    escapeHtml,
+    stripCodeBlocks,
+};

@@ -4,7 +4,7 @@ import { Compiler } from "./compiler.js";
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
-async function loadConfig(configPath) {
+export default async function loadConfig(configPath) {
     // load mdv.config.ts if path is not passed but file exists
     let resolvedConfig = {};
     const fullPath = configPath
