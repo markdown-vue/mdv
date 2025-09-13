@@ -7,10 +7,11 @@ export function useMeta<T extends string | undefined = undefined>(
 ): T extends string ? Promise<Meta> : Meta {
     const instance = getCurrentInstance();
     if (!metaPath) {
-        return (instance as any)?.provides?.meta as any;
+        return (instance as any)?.provides?.$meta as any;
     }
 
-    const path = metaPath.replace(/(\.v\.md)|(\.vue)$/, ".mdv.json");
+    let path = metaPath.replace(/(\.v\.md)|(\.vue)$/, ".mdv.json");
+    path = path.endsWith(".mdv.json") ? path : `${path}.mdv.json`;
 
     if(importType === 'import') {
         return import(path).then((res) => res.default);;
