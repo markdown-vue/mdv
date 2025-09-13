@@ -24,7 +24,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         return {
             vue: vueCachePath,
             json: vueCachePath.replace(/\.vue$/, ".mdv.json"),
-            shiki: vueCachePath.replace(/\.vue$/, ".shiki.js"),
+            shiki: vueCachePath.replace(/\.vue$/, ".shiki.json"),
         };
     }
 
@@ -59,7 +59,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         const { content, meta, shikis } = await compileMDV(
             mdContent,
             path.relative(cacheDir, json).replace(/\\/g, "/"),
-            path.relative(cacheDir, shiki).toLowerCase().replace(/\\/g, "/"),
+            path.relative(path.join(cacheDir, "components"), shiki).replace(/\\/g, "/"),
             componentsDirRelative.toLowerCase().replace(/\\/g, "/"),
             {
                 customComponents: {},
