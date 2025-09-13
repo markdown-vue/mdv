@@ -342,25 +342,28 @@ ${template}
 </template>
 
 <script setup ${finalScriptSetupProps}>
+${ Object.keys(meta).length ? `
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf("/") + 1)}'
+`.trim() : ''}
+${ Object.keys(shikis).length ? `
 import CodeBlock from '${componentsPath}/code-block.vue'
+`.trim() : ''}
 ${imports.join("\n")}
 ${scriptImports}
 
 ${tableHeadersScript}
 
-__mdvProvide('meta', {
-    ...$meta,
-    metaPath: '${metaPath}'
-})
+${ Object.keys(meta).length ? `
+__mdvProvide('$meta', $meta)
+`.trim() : ''}
 
 ${cleanedScriptSetup}
 
 </script>
 
 ${styles.join("\n")}
-`;
+`.trim().replace(/\n+/g, "\n");
 
     return { content: vueSFC, meta, shikis };
 }
