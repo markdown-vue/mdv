@@ -8,7 +8,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
     const {
         compileMDVFile,
         compileAllMDVFiles,
-        writeGlobalComponentsDTS,
+        writeComponentsDTS,
         copyComponentsDir,
         extension,
         cacheDir,
@@ -21,6 +21,17 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
     return {
         name: "vite-plugin-mdv",
         enforce: "pre",
+
+        config: () => {
+            return {
+                resolve: {
+                    alias: {
+                        "@mdv": path.resolve(cacheDir),
+                    },
+                    extensions: [".v.md", ".mdv.json", ".shiki.js"],
+                },
+            }
+        },
 
         async resolveId(importee, importer) {
             if (importee.endsWith(extension)) {
@@ -35,6 +46,10 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
                     .join(cacheDir, path.relative(srcRoot, mdPath))
                     .replace(/\.v\.md$/, ".vue");
                 return vuePath;
+            }
+            else if(importee.startsWith("@mdv/")){
+                return path
+                    .join(cacheDir, importee.substring(5));
             }
             return null;
         },
@@ -96,8 +111,8 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
                 );
 
             await compileAllMDVFiles(srcRoot, server);
-            await writeGlobalComponentsDTS(srcRoot);
-            await copyComponentsDir(path.resolve(__dirname, '../../src'));
+            await writeComponentsDTS(srcRoot);
+            await copyComponentsDir(srcRoot);
             console.log(`✅ MDV: Done ✨`);
         },
     };

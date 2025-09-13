@@ -36,10 +36,10 @@ program
             srcRoot: options.srcRoot || fileConfig.srcRoot || "src",
             cacheDir: options.cacheDir || fileConfig.cacheDir || ".mdv",
         };
-        const { compileAllMDVFiles, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
+        const { compileAllMDVFiles, writeComponentsDTS, copyComponentsDir } = Compiler(config);
         await compileAllMDVFiles(config.srcRoot);
-        await writeGlobalComponentsDTS(config.srcRoot);
-        await copyComponentsDir(path.resolve(__dirname, '../../src'));
+        await copyComponentsDir(config.srcRoot);
+        await writeComponentsDTS(config.srcRoot);
     });
 
 program
@@ -53,10 +53,10 @@ program
             srcRoot: options.srcRoot || fileConfig.srcRoot || "src",
             cacheDir: options.cacheDir || fileConfig.cacheDir || ".mdv",
         };
-        const { watchAll, writeGlobalComponentsDTS, copyComponentsDir } = Compiler(config);
-        await writeGlobalComponentsDTS(config.srcRoot);
-        await copyComponentsDir(path.resolve(__dirname, '../../src'));
+        const { watchAll, writeComponentsDTS, copyComponentsDir } = Compiler(config);
         await watchAll(config.srcRoot);
+        await copyComponentsDir(config.srcRoot);
+        await writeComponentsDTS(config.srcRoot);
     });
 
 program.parse();

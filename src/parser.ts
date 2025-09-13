@@ -406,6 +406,29 @@ declare module '@vue/runtime-core' {
   `.trim();
 }
 
+
+/**
+ * Generate TypeScript Components module string
+ * 
+ * @param paths 
+ * @returns 
+ */
+export function generateComponentsModule(paths: string[]): string {
+    return paths
+        .map((p) => {
+            const name = getComponentName(p);
+            const vuePath = p.replace(/\.v\.md$/, ".vue");
+            return `
+import ${name} from './${vuePath}'
+declare module '@mdv/${vuePath.replace(/\.vue$/, "")}' {
+  export default ${name}
+}`;
+        })
+        .join("\n")
+        .trim();
+}
+
+
 function getComponentName(rawPath: string) {
     return pascalCase(path.basename(rawPath).replace(/(\.vue|\.v\.md)$/g, ""));
 }

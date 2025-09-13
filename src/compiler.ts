@@ -1,5 +1,5 @@
 import path from "path";
-import { compileMDV, generateGlobalComponentsModule } from "@mdv/parser";
+import { compileMDV, generateComponentsModule, generateGlobalComponentsModule } from "@mdv/parser";
 import { MDVPluginOptions } from "@mdv/types/mdv-config";
 import fs from "fs";
 import chokidar from "chokidar";
@@ -162,6 +162,28 @@ export const Compiler = (options: MDVPluginOptions) => {
         fs.writeFileSync(dtsPath, content, "utf-8");
     }
 
+
+    /**
+     * Scan a directory for .vue files, generate Components declaration, write to .mdv folder
+     * 
+     * @param dir 
+     */
+    function writeComponentsDTS(dir: string = srcRoot) {
+        console.log(`--🪐 Generating components typings...`);
+
+        const vueFiles = getMdvFiles();
+
+        // Get TS module string from parser
+        const content = generateComponentsModule(
+            vueFiles.map(f => `${path.relative(dir, f).replace(/\.v\.md$/, ".vue").replace(/\\/g, "/")}`)
+        );
+
+        // Write to .d.ts
+        fs.mkdirSync(cacheDir, { recursive: true });
+        const dtsPath = path.join(cacheDir, "mdv-components.d.ts");
+        fs.writeFileSync(dtsPath, content, "utf-8");
+    }
+
     /**
      * Copy components directory to .mdv folder
      */
@@ -177,7 +199,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         }
     }
 
-    function getMdvFiles(dir: string = srcRoot) {
+    function getMdvFiles(dir: string = srcRoot, ext: string = ".v.md") {
         const mdvFiles: string[] = [];
 
         function scanDir(d: string) {
@@ -185,7 +207,7 @@ export const Compiler = (options: MDVPluginOptions) => {
             for (const e of entries) {
                 const fullPath = path.join(d, e.name);
                 if (e.isDirectory()) scanDir(fullPath);
-                else if (e.isFile() && e.name.endsWith(".v.md"))
+                else if (e.isFile() && e.name.endsWith(ext))
                     mdvFiles.push(fullPath);
             }
         }
@@ -199,8 +221,10 @@ export const Compiler = (options: MDVPluginOptions) => {
         compileMDVFile,
         compileAllMDVFiles,
         watchAll,
+        writeComponentsDTS,
         writeGlobalComponentsDTS,
         copyComponentsDir,
+        getMdvFiles,
         extension,
         cacheDir,
         srcRoot,
