@@ -72,7 +72,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
                     .replace(/\.v\.md$/, ".vue");
                 const pathsToRemove = [
                     vueCachePath,
-                    vueCachePath.replace(/\.vue$/, ".v.md.ts"),
+                    vueCachePath.replace(/\.vue$/, ".shiki.js"),
                     vueCachePath.replace(/\.vue$/, ".mdv.json"),
                 ];
                 for (const p of pathsToRemove) if (fs.existsSync(p)) fs.unlinkSync(p);

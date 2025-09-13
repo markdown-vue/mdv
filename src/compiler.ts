@@ -24,7 +24,7 @@ export const Compiler = (options: MDVPluginOptions) => {
         return {
             vue: vueCachePath,
             json: vueCachePath.replace(/\.vue$/, ".mdv.json"),
-            shiki: vueCachePath.replace(/\.vue$/, ".shiki.json"),
+            shiki: vueCachePath.replace(/\.vue$/, ".shiki.js"),
         };
     }
 
