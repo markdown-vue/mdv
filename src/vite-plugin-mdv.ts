@@ -112,7 +112,7 @@ export function mdvPlugin(options: MDVPluginOptions = {}): Plugin {
 
             await compileAllMDVFiles(srcRoot, server);
             await writeComponentsDTS(srcRoot);
-            await copyComponentsDir(srcRoot);
+            await copyComponentsDir(path.resolve(__dirname, '../../src'));
             console.log(`✅ MDV: Done ✨`);
         },
     };
