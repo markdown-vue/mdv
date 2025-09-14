@@ -5,3 +5,4 @@ node_modules
 # MDV
 .mdv
 dist
+.mdv-lsp
