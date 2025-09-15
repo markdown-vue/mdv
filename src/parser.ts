@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import MarkdownIt from "markdown-it";
+import MarkdownIt, { Token } from "markdown-it";
 import { u } from "unist-builder";
 import { visit } from "unist-util-visit";
 import { CompileMDVOptions, MDVNode } from "@mdv/types/mdv-config";
@@ -18,6 +18,7 @@ export function parseFrontmatter(mdContent: string) {
 
 const md = new MarkdownIt({ html: true, breaks: true });
 
+
 /**
  * Markdown parser to AST
  */
@@ -33,15 +34,32 @@ export async function markdownToAST(
     components: string[];
 }> {
     const tokens = md.parse(mdContent, {});
+
+    // Run validation before doing anything else
+    validateMDVContainers(tokens);
+
     const astChildren: MDVNode[] = [];
-    const stack: { tag: string; children: MDVNode[] }[] = [];
+    const stack: { tag: string; children: MDVNode[], props?: string }[] = [];
     const shikis: Record<string, string> = {};
     const imports: string[] = [];
     const components: string[] = [];
 
+
     let i = 0;
     while (i < tokens.length) {
         const token = tokens[i];
+
+        // Container syntax detection
+        if (token.type === "paragraph_open" && tokens[i + 1]?.type === "inline" && tokens[i + 1]?.content.trim() === "[") {
+            let j = i + 3; // skip opening line
+            const { node, newIndex } = await parseContainer(tokens, j, shikiPath, customComponents);
+            if (node) {
+                stack.push(node);
+                i = newIndex;
+                continue;
+            }
+        }
+
 
         // Table detection
         if (token.type === "table_open") {
@@ -116,14 +134,17 @@ export async function markdownToAST(
 
             // check if there is a custom component mapping
             const componentPath = customComponents[node.tag];
-            const finalTag = componentPath
+            const finalTag = (componentPath
                 ? getComponentName(componentPath)
-                : node.tag;
+                : node.tag).trim();
             const importLine = `import ${finalTag} from '${componentPath}';`;
             if (componentPath && !imports.includes(importLine))
                 imports.push(importLine);
 
-            const html = `<${finalTag}>${node.children.map((c) => c.value || "").join("")}</${finalTag}>`;
+            const props = node.props?.trim();
+            const children = node.children.map((c) => c.value || "").join("");
+
+            const html = `<${finalTag}${props ? ` ${props}` : ''}>${children}</${finalTag}>`;
 
             if (!components.includes(finalTag)) components.push(finalTag);
 
@@ -182,8 +203,111 @@ export async function markdownToAST(
     };
 }
 
+
+async function parseContainer(
+    tokens: Token[],
+    startIndex: number,
+    shikiPath: string,
+    customComponents: Record<string, string>
+) {
+    const openToken = tokens[startIndex - 2]; // the opening paragraph token with '['
+    const regex = /^\s*\]\s*\{\s*(?:::(\w+))?([\s\S]*)\}/;
+
+    const innerTokens: Token[] = [];
+    let depth = 1;
+    let j = startIndex;
+
+    while (j < tokens.length && depth > 0) {
+        const t = tokens[j];
+
+        // detect nested container opening
+        if (
+            t.type === "paragraph_open" &&
+            tokens[j + 1]?.type === "inline" &&
+            tokens[j + 1]?.content.trim() === "["
+        ) {
+            depth++;
+            innerTokens.push(t, tokens[j + 1], tokens[j + 2]); // include opening tokens
+            j += 3;
+            continue;
+        }
+
+        // detect closing for current depth
+        if (t.type === "inline" && t.content.trim().match(regex)) {
+            depth--;
+            if (depth === 0) break; // found the matching closing
+        }
+
+        innerTokens.push(t);
+        j++;
+    }
+
+    const match = tokens[j]?.content.trim().match(regex);
+    if (!match) return { newIndex: j, node: null };
+
+    const { ast } = await markdownToAST(
+        innerTokens.map((t) => t.content).join("\n"),
+        shikiPath,
+        customComponents
+    );
+
+    return {
+        newIndex: j + 1,
+        node: { tag: match[1] || "div", children: ast.children ?? [], props: match[2] },
+    };
+}
+
+export function validateMDVContainers(tokens: Token[]) {
+    const stack: { idx: number; line: number }[] = [];
+    const regex = /^\s*\]\s*\{\s*(?:::(\w+))?([\s\S]*)\}/;
+
+    tokens.forEach((t, i) => {
+        if (i === 0 || tokens[i - 1].type !== "paragraph_open" || tokens[i + 1].type !== "paragraph_close" || t.type !== "inline") return;
+
+        if (t.content.trim() === "[") {
+            stack.push({ idx: i, line: t.map ? t.map[0] + 1 : -1 });
+        } else if (t.content.trim() === "]" || regex.test(t.content.trim())) {
+            if (stack.length === 0) {
+                const line = t.map ? t.map[0] + 1 : -1;
+                throw new Error(
+                    `[MDV] Unmatched closing container at line ${line}
+...
+${
+    tokens
+        .map((t, i) => t.content + (i === (line-1) ? "      <----- UNMATCHED " : ""))
+        .slice(line - 5, line + 5)
+        .join("\n").replace(/\n\n+/g, "\n\n")
+}
+...`
+                );
+            } else {
+                stack.pop();
+            }
+        }
+    });
+
+    if (stack.length > 0) {
+        const unclosed = stack.pop()!;
+        throw new Error(
+            `[MDV] Unclosed container opened at line ${unclosed.line}: 
+...
+${
+    tokens
+        .map((t, i) => t.content + (i === unclosed.idx ? "      <----- UNCLOSED " : ""))
+        .slice(unclosed.idx - 5, unclosed.idx + 5)
+        .join("\n").replace(/\n\n+/g, "\n\n")
+}
+...`
+        );
+    }
+}
+
+
+
+
+
 /**
- * Transform AST for inline components, dynamic tables, etc.
+ * Transform AST for inline and blocked components, dynamic tables, etc.
  */
 export function transformAST(ast: MDVNode): MDVNode {
     let tableCounter = 0;
@@ -193,7 +317,7 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "html" && node.value) {
             let value = node.value;
 
-            // Inline dynamic components :[expr]{::Component optional props optional}
+            // --- Inline dynamic components :[expr]{::Component optional props optional}
             value = value.replace(
                 /:\[([^\]]+)\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
                 (_, expr: string, comp?: string, props?: string) => {
@@ -203,7 +327,7 @@ export function transformAST(ast: MDVNode): MDVNode {
                 },
             );
 
-            // Inline static components [text]{::Component optional props optional}
+            // --- Inline static components [text]{::Component optional props optional}
             value = value.replace(
                 /\[([^\]]+)\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
                 (_, text: string, comp?: string, props?: string) => {
@@ -216,6 +340,17 @@ export function transformAST(ast: MDVNode): MDVNode {
             node.value = value;
         }
 
+        // Container syntax
+        if (node.type === "mdv-container") {
+            const tag = node.tag || "div";
+            const propStr = node.propsLine ? node.propsLine.trim() : "";
+            node.value = `<${tag}${propStr ? " " + propStr : ""}>${astToTemplate({
+                ...node,
+                children: node.children?.map(transformAST),
+            })}</${tag}>`;
+        }
+
+        // Table handling unchanged
         if (node.type === "table" && node.propsLine) {
             const dataSource = node.propsLine.match(/:data-source="(.+?)"/)?.[1];
             const rowKey = node.propsLine.match(/row-key-prop="(.+?)"/)?.[1] || "id";
@@ -257,11 +392,12 @@ export function transformAST(ast: MDVNode): MDVNode {
         }
     });
 
-    // Attach headers to AST for script injection later
     ast["tableHeadersScript"] = scriptHeaders;
+
 
     return ast;
 }
+
 
 /**
  * Convert AST to template
@@ -269,7 +405,7 @@ export function transformAST(ast: MDVNode): MDVNode {
 export function astToTemplate(ast: MDVNode): string {
     let template = "";
     visit(ast, (node: MDVNode) => {
-        if ((node.type === "html" || node.type === "table") && node.value)
+        if ((node.type === "html" || node.type === "table" || node.type === "mdv-container") && node.value)
             template += node.value + "\n";
     });
     return template;
@@ -304,12 +440,21 @@ export async function compileMDV(
     componentsPath: string,
     options: CompileMDVOptions = {},
 ) {
-    const { content, meta } = parseFrontmatter(mdContent);
+    const { content: _content, meta } = parseFrontmatter(mdContent);
     const {
         scriptSetup,
         scriptSetupProps: extractedScriptSetupProps,
         styles,
-    } = extractScriptStyle(content);
+    } = extractScriptStyle(_content);
+
+
+    const content = _content.replace(
+        /\n\s*\[\s*\n/g,
+        "\n\n[\n\n"
+    ).replace(
+        /\n\s*\]\s*\{([\s\S]*?)\}\s*\n/g,
+        "\n\n]{$1}\n\n"
+    );
 
     const { ast, shikis, imports } = await markdownToAST(
         content,
@@ -317,7 +462,8 @@ export async function compileMDV(
         options.customComponents,
     );
     const transformed = transformAST(ast);
-    const template = astToTemplate(transformed);
+
+    let template = astToTemplate(transformed)
 
     const tableHeadersScript = (transformed["tableHeadersScript"] ?? []).join(
         "\n",
@@ -342,11 +488,11 @@ ${template}
 </template>
 
 <script setup ${finalScriptSetupProps}>
-${ Object.keys(meta).length ? `
+${Object.keys(meta).length ? `
 import { provide as __mdvProvide } from 'vue'
 import $meta from './${metaPath.substring(metaPath.lastIndexOf("/") + 1)}'
 `.trim() : ''}
-${ Object.keys(shikis).length ? `
+${Object.keys(shikis).length ? `
 import CodeBlock from '${componentsPath}/code-block.vue'
 `.trim() : ''}
 ${imports.join("\n")}
@@ -354,7 +500,7 @@ ${scriptImports}
 
 ${tableHeadersScript}
 
-${ Object.keys(meta).length ? `
+${Object.keys(meta).length ? `
 __mdvProvide('$meta', $meta)
 `.trim() : ''}
 
