@@ -42,48 +42,54 @@ export const Compiler = (options: MDVPluginOptions) => {
 
     async function compileMDVFile(file: string, viteServer?: any) {
         if (!fs.existsSync(file)) return;
-        const stats = fs.statSync(file);
-        const lastModified = stats.mtimeMs;
-        if (compiledTimestamps.get(file) === lastModified) return;
-
-        console.log(`--🔨 Compiling: ${path.relative(process.cwd(), file)}`);
-        const { vue, json, shiki } = getCachePaths(file);
-        const vueDir = path.dirname(vue);
-        if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true });
-
         
-        const componentsDir = path.join(cacheDir, "components");
-        const componentsDirRelative = path.relative(path.dirname(vue), componentsDir);
+        try {
+            const stats = fs.statSync(file);
+            const lastModified = stats.mtimeMs;
+            if (compiledTimestamps.get(file) === lastModified) return;
 
-        const mdContent = fs.readFileSync(file, "utf-8");
-        const { content, meta, shikis } = await compileMDV(
-            mdContent,
-            path.relative(cacheDir, json).replace(/\\/g, "/"),
-            path.relative(path.join(cacheDir, "components"), shiki).replace(/\\/g, "/"),
-            componentsDirRelative.toLowerCase().replace(/\\/g, "/"),
-            {
-                customComponents: {},
+            console.log(`--🔨 Compiling: ${path.relative(process.cwd(), file)}`);
+            const { vue, json, shiki } = getCachePaths(file);
+            const vueDir = path.dirname(vue);
+            if (!fs.existsSync(vueDir)) fs.mkdirSync(vueDir, { recursive: true });
+
+            
+            const componentsDir = path.join(cacheDir, "components");
+            const componentsDirRelative = path.relative(path.dirname(vue), componentsDir);
+
+            const mdContent = fs.readFileSync(file, "utf-8");
+            const { content, meta, shikis } = await compileMDV(
+                mdContent,
+                path.relative(cacheDir, json).replace(/\\/g, "/"),
+                path.relative(path.join(cacheDir, "components"), shiki).replace(/\\/g, "/"),
+                componentsDirRelative.toLowerCase().replace(/\\/g, "/"),
+                {
+                    customComponents: {},
+                }
+            );
+
+
+
+
+            mdvMeta.set(file, meta);
+            fs.writeFileSync(vue, content, "utf-8");
+            fs.writeFileSync(json, JSON.stringify(meta, null, 2), "utf-8");
+            if (Object.keys(shikis).length > 0)
+                fs.writeFileSync(shiki, `export default ${JSON.stringify(shikis)}`);
+
+            compiledTimestamps.set(file, lastModified);
+
+            if (viteServer) {
+                const mod = viteServer.moduleGraph.getModuleById("\0mdv:" + file);
+                if (mod) viteServer.moduleGraph.invalidateModule(mod);
             }
-        );
 
-
-
-
-        mdvMeta.set(file, meta);
-        fs.writeFileSync(vue, content, "utf-8");
-        fs.writeFileSync(json, JSON.stringify(meta, null, 2), "utf-8");
-        if (Object.keys(shikis).length > 0)
-            fs.writeFileSync(shiki, `export default ${JSON.stringify(shikis)}`);
-
-        compiledTimestamps.set(file, lastModified);
-
-        if (viteServer) {
-            const mod = viteServer.moduleGraph.getModuleById("\0mdv:" + file);
-            if (mod) viteServer.moduleGraph.invalidateModule(mod);
+            console.log(`--✅ Compiled: ${path.relative(process.cwd(), vue)}`);
+            return content;
         }
-
-        console.log(`--✅ Compiled: ${path.relative(process.cwd(), vue)}`);
-        return content;
+        catch (e) {
+            console.error(e);
+        }
     }
 
     async function compileAllMDVFiles(dir: string = srcRoot, viteServer?: any) {
@@ -108,15 +114,19 @@ export const Compiler = (options: MDVPluginOptions) => {
 
         if (!skipCleanup) cleanOrphans(dir);
 
-        // now compile everything
-        const files = fs.readdirSync(dir, { withFileTypes: true });
-        for (const file of files) {
-            const fullPath = path.join(dir, file.name);
-            if (file.isDirectory()) {
-                await compileAllMDVFiles(fullPath, viteServer);
-            } else if (file.isFile() && file.name.endsWith(extension)) {
-                await compileMDVFile(fullPath, viteServer);
+        try {
+            // now compile everything
+            const files = fs.readdirSync(dir, { withFileTypes: true });
+            for (const file of files) {
+                const fullPath = path.join(dir, file.name);
+                if (file.isDirectory()) {
+                    await compileAllMDVFiles(fullPath, viteServer);
+                } else if (file.isFile() && file.name.endsWith(extension)) {
+                    await compileMDVFile(fullPath, viteServer);
+                }
             }
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -130,15 +140,27 @@ export const Compiler = (options: MDVPluginOptions) => {
         watcher
             .on("add", async (file) => {
                 if (!file.endsWith(extension)) return;
-                await compileMDVFile(file, viteServer);
+                try {
+                    await compileMDVFile(file, viteServer);
+                } catch (e) {
+                    console.error(e);
+                }
             })
             .on("change", async (file) => {
                 if (!file.endsWith(extension)) return;
-                await compileMDVFile(file, viteServer);
+                try {
+                    await compileMDVFile(file, viteServer);
+                } catch (e) {
+                    console.error(e);
+                }
             })
             .on("unlink", (file) => {
                 if (!file.endsWith(extension)) return;
-                cleanupCacheFiles(file);
+                try {
+                    cleanupCacheFiles(file);
+                } catch (e) {
+                    console.error(e);
+                }
                 console.log(`--🗑️ MDV removed: ${file}`);
             });
     }

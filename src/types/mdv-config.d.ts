@@ -21,7 +21,7 @@ export type Meta = Record<string, any>;
  * @property {string} value - Node value
  * @property {MDVNode[]} children - Child nodes
  */
-export type MDVNode = Node & {
+export type MDVNode = {
     type: string;
     value?: string;
     children?: MDVNode[];
@@ -29,6 +29,7 @@ export type MDVNode = Node & {
     propsLine?: string; // for table
     placeholder?: string; // for table
     tableHeadersScript?: string[];
+    tag?: string;
     shiki?: { key: string; code: string };
 };
 
