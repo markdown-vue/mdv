@@ -257,6 +257,18 @@ async function parseContainer(
     };
 }
 
+
+/**
+ * Validate MDV containers
+ * 
+ * Checks for unmatched closing containers
+ * 
+ * Checks for missing closing containers
+ * 
+ * Throws error if validation fails
+ * 
+ * @param tokens 
+ */
 export function validateMDVContainers(tokens: Token[]) {
     const stack: { idx: number; line: number }[] = [];
     const regex = /^\s*\]\s*\{\s*(?:::(\w+))?([\s\S]*)\}/;
@@ -304,8 +316,6 @@ ${
 
 
 
-
-
 /**
  * Transform AST for inline and blocked components, dynamic tables, etc.
  */
@@ -317,13 +327,19 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "html" && node.value) {
             let value = node.value;
 
-            // --- Inline dynamic components :[expr]{::Component optional props optional}
+            // --- Inline dynamic components :[expr]{::Component optional props optional} with or without { ... } props block
             value = value.replace(
-                /:\[([^\]]+)\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
+                /:\[\s*([^\]]+)\s*\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
                 (_, expr: string, comp?: string, props?: string) => {
                     const tag = comp || "span";
                     const propStr = props ? props.trim() : "";
-                    return `<${tag}${propStr ? " " + propStr : ""}>{{ ${expr} }}</${tag}>`;
+                    // does it have any props or custom component?
+                    if(propStr || comp) {
+                        // Yes, so return full component tag
+                        return `<${tag}${propStr ? " " + propStr : ""}>{{ ${expr} }}</${tag}>`;
+                    }
+                    // It's expression only
+                    return `{{ ${expr} }}`;
                 },
             );
 
@@ -588,7 +604,11 @@ function escapeHtml(str: string) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replace(/'/g, "&#39;")
+        .replace(/{/g, "&#123;")
+        .replace(/}/g, "&#125;")
+        .replace(/\[/g, "&#91;")
+        .replace(/\]/g, "&#93;")
 }
 
 /**
