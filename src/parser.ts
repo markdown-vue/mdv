@@ -157,7 +157,7 @@ export async function markdownToAST(
             const props = node.props?.trim();
             const children = node.children.map((c) => c.value || "").join("");
 
-            const html = `<${finalTag}${props ? ` ${props}` : ''}>${children}</${finalTag}>`;
+            const html = `<${finalTag}${props ? ` ${compilePropsLine(props)}` : ''}>${children}</${finalTag}>`;
 
             if (!components.includes(finalTag)) components.push(finalTag);
 
@@ -362,7 +362,7 @@ export function transformAST(ast: MDVNode): MDVNode {
                     // does it have any props or custom component?
                     if(propStr || comp) {
                         // Yes, so return full component tag
-                        return `<${tag}${propStr ? " " + propStr : ""}>{{ ${expr} }}</${tag}>`;
+                        return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>{{ ${expr} }}</${tag}>`;
                     }
                     // It's expression only
                     return `{{ ${expr} }}`;
@@ -375,7 +375,7 @@ export function transformAST(ast: MDVNode): MDVNode {
                 (_, text: string, comp?: string, props?: string) => {
                     const tag = comp || "span";
                     const propStr = props ? props.trim() : "";
-                    return `<${tag}${propStr ? " " + propStr : ""}>${text}</${tag}>`;
+                    return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>${text}</${tag}>`;
                 },
             );
 
@@ -386,7 +386,7 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "mdv-container") {
             const tag = node.tag || "div";
             const propStr = node.propsLine ? node.propsLine.trim() : "";
-            node.value = `<${tag}${propStr ? " " + propStr : ""}>${astToTemplate({
+            node.value = `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>${astToTemplate({
                 ...node,
                 children: node.children?.map(transformAST),
             })}</${tag}>`;
@@ -438,6 +438,33 @@ export function transformAST(ast: MDVNode): MDVNode {
 
 
     return ast;
+}
+
+
+/**
+ * Merge custom syntaxes for props line e.g. classes, ids, etc. (.class, #id, etc.)
+ * 
+ */
+export function compilePropsLine(propsLine: string) {
+    const regex = /\s*(?:([\.|#])([^\s]+))|(.*)\s*/gm;
+    const props: { classes: string[], id: string, other: string[] } = {
+        classes: [],
+        id: '',
+        other: []
+    }
+
+    const matches = propsLine.matchAll(regex);
+    let match = matches.next();
+    while (!match.done) {
+        const [, type, prop, other] = match.value;
+        if (type === '.') props.classes.push(prop);
+        else if (type === '#') props.id = prop;
+        else if (other) props.other.push(other);
+        match = matches.next();
+    }
+    const propsString = `class="${props.classes.join(' ')}"${ props.other.length ? ' ' + props.other.join(' ') : '' }${props.id ? ' id="' + props.id + '"' : ''}`;
+
+    return propsString;
 }
 
 

@@ -33,7 +33,9 @@ this is a simple line
     another paragraph with :[dynamic]{ ::dynamicComponent } inline component
 ] { 
     ::containerComponent 
-    class="container-class"
+    #id
+    .class-1
+    .class-2
 }
 
 asd
