@@ -355,24 +355,26 @@ export function transformAST(ast: MDVNode): MDVNode {
 
             // --- Inline dynamic components :[expr]{ ::Component ...props } with or without { ... } props block
             value = value.replace(
-                /:\[\s*([^\]]+)\s*\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
-                (_, expr: string, comp?: string, props?: string) => {
+                /(.):\[\s*([^\]]+)\s*\](?:\s*\{\s*(?:::([\w-]+))?([\s\S]*?)\})?/g,
+                (_, escape, expr: string, comp?: string, props?: string) => {
+                    if(escape === '\\') return escapeHtml(_.substring(1));
                     const tag = comp || "span";
                     const propStr = props ? props.trim() : "";
                     // does it have any props or custom component?
                     if(propStr || comp) {
                         // Yes, so return full component tag
-                        return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>{{ ${expr} }}</${tag}>`;
+                        return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>{{ ${expr.trim()} }}</${tag}>`;
                     }
                     // It's expression only
-                    return `{{ ${expr} }}`;
+                    return `{{ ${expr.trim()} }}`;
                 },
             );
 
             // --- Inline static components [text]{::Component optional props optional}
             value = value.replace(
-                /\[([^\]]+)\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
-                (_, text: string, comp?: string, props?: string) => {
+                /(.)\[\s*([^\]]+)\s*\]\s*\{\s*(?:::([\w-]+))?([\s\S]*?)\}/g,
+                (_, escape, text: string, comp?: string, props?: string) => {
+                    if(escape === '\\') return escapeHtml(_.substring(1));
                     const tag = comp || "span";
                     const propStr = props ? props.trim() : "";
                     return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>${text}</${tag}>`;

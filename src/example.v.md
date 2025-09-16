@@ -15,9 +15,10 @@ const x = 1;
 
 <!-- everythin after this is ignored -->
 
-this is [inline]{ ::inlineComponent } component
-this is :[   dynamic   ]{ ::dynamicComponent } inline component with binded expression
+this is [inline]{ ::inline-component } component
+this is :[   dynamic   ]{ ::dynamicComponent .class-1 } inline component with binded expression
 this is only a :[ binded ] inline expression. it will act same as `{{ binded }}`.
+this should be \\:[escaped]{ ::escapedComponent }
 
 this is a simple line
 
