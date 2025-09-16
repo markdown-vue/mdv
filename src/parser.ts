@@ -10,6 +10,11 @@ import { pathToFileURL } from "url";
 
 /**
  * Parse frontmatter
+ * 
+ * Extracts YAML frontmatter from markdown and returns content and metadata
+ * 
+ * @param mdContent
+ * @returns content, meta
  */
 export function parseFrontmatter(mdContent: string) {
     const { content, data } = matter(mdContent);
@@ -21,6 +26,14 @@ const md = new MarkdownIt({ html: true, breaks: true });
 
 /**
  * Markdown parser to AST
+ * 
+ * Converts markdown to Abstract Syntax Tree
+ * 
+ * @returns ast, shikis, imports, components
+ * 
+ * @param mdContent
+ * @param shikiPath
+ * @param customComponents
  */
 
 export async function markdownToAST(
@@ -203,7 +216,17 @@ export async function markdownToAST(
     };
 }
 
-
+/**
+ * Parse a container
+ * 
+ * Checks for containers recursively
+ * 
+ * @param tokens 
+ * @param startIndex 
+ * @param shikiPath 
+ * @param customComponents 
+ * @returns 
+ */
 async function parseContainer(
     tokens: Token[],
     startIndex: number,
@@ -318,6 +341,9 @@ ${
 
 /**
  * Transform AST for inline and blocked components, dynamic tables, etc.
+ * 
+ * @param ast 
+ * @returns
  */
 export function transformAST(ast: MDVNode): MDVNode {
     let tableCounter = 0;
@@ -327,7 +353,7 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "html" && node.value) {
             let value = node.value;
 
-            // --- Inline dynamic components :[expr]{::Component optional props optional} with or without { ... } props block
+            // --- Inline dynamic components :[expr]{ ::Component ...props } with or without { ... } props block
             value = value.replace(
                 /:\[\s*([^\]]+)\s*\](?:\{\s*(?:::(\w+))?([\s\S]*?)\})?/g,
                 (_, expr: string, comp?: string, props?: string) => {
@@ -417,6 +443,9 @@ export function transformAST(ast: MDVNode): MDVNode {
 
 /**
  * Convert AST to template
+ * 
+ * @returns 
+ * @param ast
  */
 export function astToTemplate(ast: MDVNode): string {
     let template = "";
@@ -429,6 +458,9 @@ export function astToTemplate(ast: MDVNode): string {
 
 /**
  * Extract user <script setup> and <style> content along with their props/attributes
+ * 
+ * @returns
+ * @param mdContent
  */
 export function extractScriptStyle(mdContent: string) {
     const stripped = stripCodeBlocks(mdContent);
@@ -449,6 +481,18 @@ export function extractScriptStyle(mdContent: string) {
     };
 }
 
+/**
+ * Compile MDV
+ * 
+ * Compiles a single MDV content to Vue SFC string
+ * 
+ * @param mdContent 
+ * @param metaPath 
+ * @param shikiPath 
+ * @param componentsPath 
+ * @param options 
+ * @returns 
+ */
 export async function compileMDV(
     mdContent: string,
     metaPath: string,
@@ -532,6 +576,9 @@ ${styles.join("\n")}
 
 /**
  * Component names need to be PascalCase and escape unsupported characters
+ * 
+ * @returns string
+ * @param str
  */
 function pascalCase(str: string) {
     return str
@@ -544,6 +591,7 @@ function pascalCase(str: string) {
 /**
  * Generate TypeScript GlobalComponents module string
  * @param componentNames PascalCase component names
+ * @returns string
  */
 export function generateGlobalComponentsModule(paths: string[]): string {
     const imports = paths
@@ -573,7 +621,7 @@ declare module '@vue/runtime-core' {
  * Generate TypeScript Components module string
  * 
  * @param paths 
- * @returns 
+ * @returns string
  */
 export function generateComponentsModule(paths: string[]): string {
     return paths
