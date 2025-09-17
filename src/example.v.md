@@ -9,7 +9,10 @@ description: Example description
 
 This is a description
 paragraph with Trailing syntax at the end 
-{ :style="{ color: 'red' }" ::paragraph }
+{ 
+    :style="{ color: 'red' }" 
+    ::paragraph 
+}
 
 Code Block:
 

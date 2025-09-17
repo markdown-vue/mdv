@@ -538,7 +538,7 @@ export function extractTrailingProps(line?: string) {
     if (depth === 0) {
         return {
             start,
-            props: line.slice(start + 1, line.length - 1).trim()
+            props: line.slice(start + 1, line.length - 1).replace(/<br\s*\/?>/g, " ").trim()
         };
     }
 
