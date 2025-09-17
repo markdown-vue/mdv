@@ -157,7 +157,7 @@ export async function markdownToAST(
             const props = node.props?.trim();
             const children = node.children.map((c) => c.value || "").join("");
 
-            const html = `<${finalTag}${props ? ` ${compilePropsLine(props)}` : ''}>${children}</${finalTag}>`;
+            const html = `<${finalTag}${props ? ` ${props}` : ''}>${children}</${finalTag}>`;
 
             if (!components.includes(finalTag)) components.push(finalTag);
 
@@ -234,7 +234,8 @@ async function parseContainer(
     customComponents: Record<string, string>
 ) {
     const openToken = tokens[startIndex - 2]; // the opening paragraph token with '['
-    const regex = /^\s*\]\s*\{\s*(?:::(\w+))?([\s\S]*)\}/;
+    const regex = /\s*\](?:\s*\{\s*([\s\S]*)\})?/
+    
 
     const innerTokens: Token[] = [];
     let depth = 1;
@@ -265,7 +266,7 @@ async function parseContainer(
         j++;
     }
 
-    const match = tokens[j]?.content.trim().match(regex);
+    const [match, props] = tokens[j]?.content.trim().match(regex) ?? [];
     if (!match) return { newIndex: j, node: null };
 
     const { ast } = await markdownToAST(
@@ -274,9 +275,16 @@ async function parseContainer(
         customComponents
     );
 
+    let { tag, type, slotProps, props: otherProps } = compilePropsLine(props);
+
+    if(type === 'slot') {
+        otherProps = `#${tag}${slotProps ? `="${slotProps}"` : ''} ${otherProps}`;
+        tag = 'template';
+    }
+
     return {
         newIndex: j + 1,
-        node: { tag: match[1] || "div", children: ast.children ?? [], props: match[2] },
+        node: { tag: tag || "div", type, children: ast.children ?? [], props: otherProps },
     };
 }
 
@@ -353,31 +361,32 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "html" && node.value) {
             let value = node.value;
 
-            // --- Inline dynamic components :[expr]{ ::Component ...props } with or without { ... } props block
+            // --- Inline components/slots [content]{ ::component ...props } or :[expr]{ ::component ...props }, with or without { ... } props block
             value = value.replace(
-                /(.):\[\s*([^\]]+)\s*\](?:\s*\{\s*(?:::([\w-]+))?([\s\S]*?)\})?/g,
-                (_, escape, expr: string, comp?: string, props?: string) => {
+            //  /(.)(:)?\[\s*([^\]]+)\s*\](?:\s*\{\s*([\s\S]+)\})?/g,
+                /(\\)?(:)?\[\s*([^\]]+)\s*\](?:\s*\{\s*([\s\S]*)\})?/g,
+                (_, escape, expr: string, text: string, props?: string) => {
                     if(escape === '\\') return escapeHtml(_.substring(1));
-                    const tag = comp || "span";
-                    const propStr = props ? props.trim() : "";
+                    const { tag: comp, type, slotProps, props: propStr } = compilePropsLine(props || "");
+                    // const propStr = props ? props.trim() : "";
                     // does it have any props or custom component?
+                    const isExpression = !!expr;
+
+                    if(type === 'slot') {
+                        // It's not component. it's SLOT
+                        return `<template #${comp}${slotProps ? `="${slotProps}"` : ''}${propStr ? " " + propStr : ""}>${ isExpression ? `{{ ${text.trim()} }}` : text}</template>`;
+                    }
+
+                    const tag = comp || "span";
+
                     if(propStr || comp) {
                         // Yes, so return full component tag
-                        return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>{{ ${expr.trim()} }}</${tag}>`;
+                        return `<${tag}${propStr ? " " + propStr : ""}>${isExpression ? `{{ ${text.trim()} }}` : text}</${tag}>`;
                     }
-                    // It's expression only
-                    return `{{ ${expr.trim()} }}`;
-                },
-            );
-
-            // --- Inline static components [text]{::Component optional props optional}
-            value = value.replace(
-                /(.)\[\s*([^\]]+)\s*\]\s*\{\s*(?:::([\w-]+))?([\s\S]*?)\}/g,
-                (_, escape, text: string, comp?: string, props?: string) => {
-                    if(escape === '\\') return escapeHtml(_.substring(1));
-                    const tag = comp || "span";
-                    const propStr = props ? props.trim() : "";
-                    return `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>${text}</${tag}>`;
+                    // No props or custom component
+                    if(isExpression) return `{{ ${text.trim()} }}`;
+                    // It's just [text]. No need to change
+                    return _;
                 },
             );
 
@@ -388,7 +397,7 @@ export function transformAST(ast: MDVNode): MDVNode {
         if (node.type === "mdv-container") {
             const tag = node.tag || "div";
             const propStr = node.propsLine ? node.propsLine.trim() : "";
-            node.value = `<${tag}${propStr ? " " + compilePropsLine(propStr) : ""}>${astToTemplate({
+            node.value = `<${tag}${propStr ? " " + propStr : ""}>${astToTemplate({
                 ...node,
                 children: node.children?.map(transformAST),
             })}</${tag}>`;
@@ -447,26 +456,37 @@ export function transformAST(ast: MDVNode): MDVNode {
  * Merge custom syntaxes for props line e.g. classes, ids, etc. (.class, #id, etc.)
  * 
  */
-export function compilePropsLine(propsLine: string) {
-    const regex = /\s*(?:([\.|#])([^\s]+))|(.*)\s*/gm;
-    const props: { classes: string[], id: string, other: string[] } = {
-        classes: [],
-        id: '',
-        other: []
+export function compilePropsLine(propsLine?: string): { tag?: string, type?: 'component' | 'slot', slotProps?: string, props?: string } {
+    if (!propsLine) return {};
+    // const regex = /\s*[^\.]?(?:([\.|#])([^\s]+))|(.*)\s*/gm;
+    const props: { component?: string, slot?: string, slotProps?: string, classes: string[], id?: string } = {
+        classes: []
     }
+//  -->                  #ID       |    .CLASS      |   ::SLOTNAME::(          {   SPREADED   } | OBJECT )::   |   ::COMPONENT   <---
+//  const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:(?:(\s*\{\s*[\s\S]+\s*\})|([\w-]+))::)?)|(?:::([\w-]+))\s*/gm;
+    const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:(?:(\s*\{\s*[\s\S]+\s*\})|([\w-]+))::)?)|(?:::([\w-]+))\s*/gm;
 
-    const matches = propsLine.matchAll(regex);
-    let match = matches.next();
-    while (!match.done) {
-        const [, type, prop, other] = match.value;
-        if (type === '.') props.classes.push(prop);
-        else if (type === '#') props.id = prop;
-        else if (other) props.other.push(other);
-        match = matches.next();
+    propsLine = propsLine.replace(regex, (_, id, cls, slot, spreadedSlotProps, slotProps, comp) => {
+        if(slot) {
+            props.slot = slot;
+            props.slotProps = spreadedSlotProps || slotProps;
+        }
+        else if(comp) props.component = comp;
+        else if(id) props.id = id;
+        else if(cls) props.classes.push(cls);
+        return "";
+    })
+
+    // Step 2: whatever remains is “other props”
+    let otherProps = propsLine.trim();
+
+    const propsStr = `${props.id ? `id="${props.id}"` : ""}${props.classes.length ? ` class="${props.classes.join(" ")}"` : ""} ${otherProps}`.trim();
+    return {
+        tag: props.component || props.slot,
+        type: props.component ? 'component' : props.slot ? 'slot' : undefined,
+        slotProps: props.slotProps,
+        props: propsStr
     }
-    const propsString = `class="${props.classes.join(' ')}"${ props.other.length ? ' ' + props.other.join(' ') : '' }${props.id ? ' id="' + props.id + '"' : ''}`;
-
-    return propsString;
 }
 
 
