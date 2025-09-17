@@ -146,11 +146,12 @@ export async function markdownToAST(
             }
             
             // Check for Trailing syntaxes - { ...props } at end of blocks
-            let trailingLine = node.children[node.children?.length - 1]?.value; 
+            const nodeValue = node.children[node.children?.length - 1]?.value;
+            let trailingLine = nodeValue; 
             const { start, props: trailingProps } = extractTrailingProps(trailingLine) ?? {};
             trailingLine = trailingProps;
 
-            if (trailingLine && !trailingLine.trim().startsWith("{")) {
+            if (trailingLine && !trailingLine.trim().startsWith("{") && !nodeValue?.substring(0, start).trim().endsWith("]")) {
                 const { tag, type, slotProps, props: otherProps } = compilePropsLine(trailingLine);
                 if( tag ) {
                     if( type === "slot" ) {
@@ -388,7 +389,7 @@ export function transformAST(ast: MDVNode): MDVNode {
             // --- Inline components/slots [content]{ ::component ...props } or :[expr]{ ::component ...props }, with or without { ... } props block
             value = value.replace(
             //  /(.)(:)?\[\s*([^\]]+)\s*\](?:\s*\{\s*([\s\S]+)\})?/g,
-                /(\\)?(:)?\[\s*([^\]]+)\s*\](?:\s*\{\s*([\s\S]*)\})?/g,
+                /(.)?(:)?\[\s*([^\]]+)\s*\](?:\s*\{\s*([\s\S]*)\})?/g,
                 (_, escape, expr: string, text: string, props?: string) => {
                     if(escape === '\\') return escapeHtml(_.substring(1));
                     const { tag: comp, type, slotProps, props: propStr } = compilePropsLine(props || "");
