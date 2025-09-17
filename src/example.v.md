@@ -3,9 +3,13 @@ title: Example
 description: Example description
 ---
 
-# {{ $meta.title }}
+# {{ $meta.title }} { .class ::heading :style="{ color: 'red' }" }
 
 {{ $meta.description }}
+
+This is a description
+paragraph with Trailing syntax at the end 
+{ :style="{ color: 'red' }" ::paragraph }
 
 Code Block:
 
@@ -26,7 +30,7 @@ this should be \\:[escaped]{ ::escapedComponent }
 this should not be [compiled]
 
 
-this should be rendered as [slot]{ .clss-2 ::slot::props .class #id }
+this should be rendered as [slot] { .clss-2 ::slot::props .class #id }
 
 
 this is a simple line
@@ -40,10 +44,10 @@ this is a simple line
 
     <!-- dummy comment. dummy []{ ::component } -->
 
-    another paragraph with :[dynamic]{ ::dynamicComponent } inline component
+    another paragraph with :[dynamic]{ ::dynamic-slot::{ id, username: { firstName, lastName } }:: } inline component
 ] { 
     .class
-    ::containerComponent::{ props, foo: {bar} }::
+    ::container-component
     :style="{ color: 'red' }"
     #id 
     .class-1 

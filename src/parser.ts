@@ -144,6 +144,30 @@ export async function markdownToAST(
                 i++;
                 continue;
             }
+            
+            // Check for Trailing syntaxes - { ...props } at end of blocks
+            let trailingLine = node.children[node.children?.length - 1]?.value; 
+            const { start, props: trailingProps } = extractTrailingProps(trailingLine) ?? {};
+            trailingLine = trailingProps;
+
+            if (trailingLine && !trailingLine.trim().startsWith("{")) {
+                const { tag, type, slotProps, props: otherProps } = compilePropsLine(trailingLine);
+                if( tag ) {
+                    if( type === "slot" ) {
+                        node.tag = "template";
+                        node.props = `#${tag}=${slotProps} ${otherProps}`;
+                    } else if(tag) {
+                        node.tag = tag;
+                        node.props = otherProps;
+                    }
+                }
+                else if( otherProps ) node.props = otherProps;
+
+                node.children[node.children.length - 1].value = node.children[node.children.length - 1].value?.substring(0, start).trim();
+                if(node.children[node.children.length - 1].value?.endsWith('<br>')) {
+                    node.children[node.children.length - 1].value = node.children[node.children.length - 1].value?.slice(0, -4);
+                }
+            }
 
             // check if there is a custom component mapping
             const componentPath = customComponents[node.tag];
@@ -487,6 +511,37 @@ export function compilePropsLine(propsLine?: string): { tag?: string, type?: 'co
         slotProps: props.slotProps,
         props: propsStr
     }
+}
+
+export function extractTrailingProps(line?: string) {
+    if(!line) return undefined;
+    line = line.trimEnd();
+    if (!line.endsWith("}")) return undefined;
+
+    let start = line.length - 1;
+    if (start === -1) return undefined;
+
+    let depth = 0;
+    for (let i = start; i < line.length; i--) {
+        const char = line[i];
+        if (char === "}") depth++;
+        else if (char === "{") depth--; 
+        if (depth === 0) {
+            start = i;
+            break;
+        };
+    }
+
+    
+
+    if (depth === 0) {
+        return {
+            start,
+            props: line.slice(start + 1, line.length - 1).trim()
+        };
+    }
+
+    return undefined; // unmatched braces
 }
 
 
