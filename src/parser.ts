@@ -462,14 +462,14 @@ export function compilePropsLine(propsLine?: string): { tag?: string, type?: 'co
     const props: { component?: string, slot?: string, slotProps?: string, classes: string[], id?: string } = {
         classes: []
     }
-//  -->                  #ID       |    .CLASS      |   ::SLOTNAME::(          {   SPREADED   } | OBJECT )::   |   ::COMPONENT   <---
-//  const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:(?:(\s*\{\s*[\s\S]+\s*\})|([\w-]+))::)?)|(?:::([\w-]+))\s*/gm;
-    const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:(?:(\s*\{\s*[\s\S]+\s*\})|([\w-]+))::)?)|(?:::([\w-]+))\s*/gm;
+//  -->                  #ID       |    .CLASS      |   ::SLOTNAME::SLOTPROPSOBJ::   |   ::COMPONENT   <---
+//  const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:([\s\S]+)::)?)|(?:::([\w-]+))\s*/gm;
+    const regex = /\s*(?:#([\w-]+))|(?:\.([^\s\.]+))|(?:::([\w-]+)::(?:([\s\S]+)::)?)|(?:::([\w-]+))\s*/gm;
 
-    propsLine = propsLine.replace(regex, (_, id, cls, slot, spreadedSlotProps, slotProps, comp) => {
+    propsLine = propsLine.replace(regex, (_, id, cls, slot, slotProps, comp) => {
         if(slot) {
             props.slot = slot;
-            props.slotProps = spreadedSlotProps || slotProps;
+            props.slotProps = slotProps?.trim();
         }
         else if(comp) props.component = comp;
         else if(id) props.id = id;
